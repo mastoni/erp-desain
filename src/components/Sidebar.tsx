@@ -1,18 +1,31 @@
 import { cx } from "../lib/format";
 import {
   IconBasket,
+  IconBook,
   IconBox,
+  IconBuilding,
   IconGrid,
   IconLogout,
   IconReceipt,
   IconSliders,
+  IconTruck,
   IconUsers,
   IconWallet,
   IconX,
   IconZap,
 } from "./icons";
 
-export type View = "dashboard" | "pos" | "digital" | "inventory" | "orders" | "finance" | "customers";
+export type View =
+  | "dashboard"
+  | "pos"
+  | "digital"
+  | "orders"
+  | "inventory"
+  | "purchasing"
+  | "suppliers"
+  | "finance"
+  | "bookkeeping"
+  | "customers";
 
 type NavItem = {
   id: View;
@@ -42,6 +55,8 @@ export function Sidebar({
   lowCount,
   pendingOrders,
   digitalCount,
+  poOpenCount,
+  dueBills,
   onSettings,
   onLogout,
 }: {
@@ -52,17 +67,37 @@ export function Sidebar({
   lowCount: number;
   pendingOrders: number;
   digitalCount: number;
+  poOpenCount: number;
+  dueBills: number;
   onSettings: () => void;
   onLogout: () => void;
 }) {
-  const items: NavItem[] = [
-    { id: "dashboard", label: "Dasbor", icon: (p) => <IconGrid {...p} /> },
-    { id: "pos", label: "Kasir (POS)", icon: (p) => <IconBasket {...p} /> },
-    { id: "digital", label: "Layanan Digital", icon: (p) => <IconZap {...p} />, badge: digitalCount, badgeTone: "plain" },
-    { id: "inventory", label: "Inventaris", icon: (p) => <IconBox {...p} />, badge: lowCount, badgeTone: "honey" },
-    { id: "orders", label: "Pesanan", icon: (p) => <IconReceipt {...p} />, badge: pendingOrders, badgeTone: "plain" },
-    { id: "finance", label: "Keuangan", icon: (p) => <IconWallet {...p} /> },
-    { id: "customers", label: "Pelanggan", icon: (p) => <IconUsers {...p} /> },
+  const groups: { title: string; items: NavItem[] }[] = [
+    {
+      title: "Operasional",
+      items: [
+        { id: "dashboard", label: "Dasbor", icon: (p) => <IconGrid {...p} /> },
+        { id: "pos", label: "Kasir (POS)", icon: (p) => <IconBasket {...p} /> },
+        { id: "digital", label: "Layanan Digital", icon: (p) => <IconZap {...p} />, badge: digitalCount, badgeTone: "plain" },
+        { id: "orders", label: "Pesanan", icon: (p) => <IconReceipt {...p} />, badge: pendingOrders, badgeTone: "plain" },
+      ],
+    },
+    {
+      title: "Manajemen",
+      items: [
+        { id: "inventory", label: "Inventaris", icon: (p) => <IconBox {...p} />, badge: lowCount, badgeTone: "honey" },
+        { id: "purchasing", label: "Pembelian", icon: (p) => <IconTruck {...p} />, badge: poOpenCount, badgeTone: "plain" },
+        { id: "suppliers", label: "Supplier", icon: (p) => <IconBuilding {...p} /> },
+      ],
+    },
+    {
+      title: "Keuangan & Relasi",
+      items: [
+        { id: "finance", label: "Laporan Keuangan", icon: (p) => <IconWallet {...p} /> },
+        { id: "bookkeeping", label: "Pembukuan", icon: (p) => <IconBook {...p} />, badge: dueBills, badgeTone: "honey" },
+        { id: "customers", label: "Pelanggan", icon: (p) => <IconUsers {...p} /> },
+      ],
+    },
   ];
 
   return (
@@ -91,9 +126,11 @@ export function Sidebar({
 
         {/* nav */}
         <nav className="flex-1 overflow-y-auto px-3.5 py-4">
-          <p className="px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Menu Utama</p>
-          <ul className="space-y-1">
-            {items.map((it) => {
+          {groups.map((g, gi) => (
+            <div key={g.title}>
+              <p className={cx("px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30", gi > 0 && "pt-5")}>{g.title}</p>
+              <ul className="space-y-1">
+                {g.items.map((it) => {
               const active = view === it.id;
               return (
                 <li key={it.id}>
@@ -128,7 +165,9 @@ export function Sidebar({
                 </li>
               );
             })}
-          </ul>
+              </ul>
+            </div>
+          ))}
 
           <p className="px-2.5 pb-2 pt-6 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Lainnya</p>
           <button

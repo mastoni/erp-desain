@@ -329,6 +329,155 @@ export const DIGITAL_TXS: DigitalTx[] = [
   { id: "DIG-7290", ref: "TRF-66310028", time: "07:11", cat: "transfer", sub: "Transfer BCA", provider: "BCA", target: "8830-2214-905", nominal: 1_000_000, fee: 6_500, commission: 4_000, total: 1_006_500, status: "gagal" },
 ];
 
+/* ---------- supplier ---------- */
+
+export type Supplier = {
+  id: string;
+  code: string;
+  name: string;
+  contact: string;
+  phone: string;
+  email: string;
+  category: string;
+  term: "Tunai" | "Tempo 14" | "Tempo 30";
+  rating: number;
+  balance: number;
+  lastOrder: string;
+  status: "aktif" | "nonaktif";
+};
+
+export const SUPPLIERS: Supplier[] = [
+  { id: "SUP-01", code: "MKM", name: "UD Makmur Sembako", contact: "Pak Darmawan", phone: "0812-2745-9012", email: "order@makmur.id", category: "Sembako", term: "Tempo 14", rating: 4.8, balance: 6_120_000, lastOrder: "28 Jan", status: "aktif" },
+  { id: "SUP-02", code: "TRK", name: "CV Tirta Kencana", contact: "Bu Santi", phone: "0813-9021-4478", email: "sales@tirtakencana.co.id", category: "Minuman", term: "Tempo 30", rating: 4.6, balance: 3_480_000, lastOrder: "1 Feb", status: "aktif" },
+  { id: "SUP-03", code: "SNK", name: "PT Snack Nusantara", contact: "Pak Rendra", phone: "0857-1102-3390", email: "po@snacknusantara.com", category: "Snack", term: "Tunai", rating: 4.4, balance: 0, lastOrder: "25 Jan", status: "aktif" },
+  { id: "SUP-04", code: "BKF", name: "UD Berkah Farm", contact: "Pak Yusuf", phone: "0819-3345-8812", email: "berkah.farm@gmail.com", category: "Sembako Segar", term: "Tunai", rating: 4.9, balance: 0, lastOrder: "2 Feb", status: "aktif" },
+  { id: "SUP-05", code: "SHG", name: "CV Sinar Higienis", contact: "Bu Maya", phone: "0821-6678-0912", email: "order@sinarhigienis.id", category: "Perawatan", term: "Tempo 14", rating: 4.2, balance: 1_250_000, lastOrder: "26 Jan", status: "aktif" },
+  { id: "SUP-06", code: "GRB", name: "PT Griya Bersih", contact: "Pak Anton", phone: "0856-2214-7703", email: "sales@griyabersih.co.id", category: "Rumah Tangga", term: "Tempo 30", rating: 4.5, balance: 2_890_000, lastOrder: "27 Jan", status: "aktif" },
+  { id: "SUP-07", code: "RTM", name: "UD Roti Melati", contact: "Bu Melati", phone: "0812-5560-1187", email: "rotimelati@gmail.com", category: "Bakery", term: "Tunai", rating: 4.7, balance: 0, lastOrder: "3 Feb", status: "aktif" },
+  { id: "SUP-08", code: "KWJ", name: "CV Kawista Jaya", contact: "Pak Haris", phone: "0852-9903-2245", email: "kawista.jaya@yahoo.com", category: "Minuman", term: "Tempo 14", rating: 4.1, balance: 0, lastOrder: "12 Des", status: "nonaktif" },
+];
+
+/* ---------- purchase order ---------- */
+
+export type POStatus = "draft" | "dikirim" | "diterima" | "dibatalkan";
+
+export type PurchaseOrder = {
+  id: string;
+  supplierId: string;
+  date: string;
+  due: string;
+  items: { productId: string; name: string; qty: number; cost: number }[];
+  status: POStatus;
+  paid: boolean;
+  note?: string;
+};
+
+export const poTotal = (po: PurchaseOrder) => po.items.reduce((s, i) => s + i.qty * i.cost, 0);
+
+export const PURCHASE_ORDERS: PurchaseOrder[] = [
+  {
+    id: "PO-2202", supplierId: "SUP-01", date: "4 Feb", due: "18 Feb", status: "draft", paid: false,
+    items: [
+      { productId: "p03", name: "Gula Pasir Gulaku 1 kg", qty: 24, cost: 15_000 },
+      { productId: "p05", name: "Tepung Segitiga Biru 1 kg", qty: 30, cost: 10_000 },
+    ],
+    note: "Restok rutin mingguan",
+  },
+  {
+    id: "PO-2201", supplierId: "SUP-01", date: "3 Feb", due: "17 Feb", status: "dikirim", paid: false,
+    items: [
+      { productId: "p01", name: "Beras Rojolele 5 kg", qty: 20, cost: 61_000 },
+      { productId: "p02", name: "Minyak Goreng Fortune 2 L", qty: 24, cost: 32_000 },
+      { productId: "p06", name: "Indomie Goreng (pcs)", qty: 200, cost: 2_900 },
+    ],
+    note: "Prioritas — stok mie menipis",
+  },
+  {
+    id: "PO-2200", supplierId: "SUP-02", date: "1 Feb", due: "3 Mar", status: "dikirim", paid: false,
+    items: [
+      { productId: "p07", name: "Air Mineral 600 ml", qty: 120, cost: 3_100 },
+      { productId: "p09", name: "Teh Botol 450 ml", qty: 48, cost: 4_400 },
+      { productId: "p10", name: "Susu UHT Cokelat 250 ml", qty: 48, cost: 4_900 },
+    ],
+  },
+  {
+    id: "PO-2199", supplierId: "SUP-04", date: "31 Jan", due: "31 Jan", status: "diterima", paid: true,
+    items: [{ productId: "p04", name: "Telur Ayam Negeri 1 kg", qty: 30, cost: 25_000 }],
+  },
+  {
+    id: "PO-2198", supplierId: "SUP-03", date: "25 Jan", due: "25 Jan", status: "diterima", paid: true,
+    items: [
+      { productId: "p13", name: "Keripik Singkong Balado", qty: 40, cost: 7_600 },
+      { productId: "p18", name: "Wafer Cokelat Tango", qty: 60, cost: 6_800 },
+      { productId: "p14", name: "Cokelat Silverqueen 65 g", qty: 24, cost: 14_000 },
+    ],
+  },
+  {
+    id: "PO-2197", supplierId: "SUP-06", date: "27 Jan", due: "26 Feb", status: "diterima", paid: false,
+    items: [
+      { productId: "p23", name: "Deterjen Rinso 770 g", qty: 30, cost: 19_500 },
+      { productId: "p24", name: "Sabun Cuci Sunlight 755 ml", qty: 36, cost: 9_200 },
+    ],
+  },
+  {
+    id: "PO-2196", supplierId: "SUP-05", date: "20 Jan", due: "3 Feb", status: "dibatalkan", paid: false,
+    items: [
+      { productId: "p19", name: "Sabun Mandi Lifebuoy 100 g", qty: 60, cost: 5_200 },
+      { productId: "p21", name: "Pasta Gigi Pepsodent 190 g", qty: 40, cost: 10_000 },
+    ],
+    note: "Dibatalkan — harga naik sepihak",
+  },
+];
+
+/* ---------- pembukuan ---------- */
+
+export type LedgerEntry = {
+  id: string;
+  date: string;
+  desc: string;
+  category: string;
+  type: "masuk" | "keluar";
+  amount: number;
+  method: string;
+};
+
+export const LEDGER: LedgerEntry[] = [
+  { id: "L-1043", date: "3 Feb", desc: "Penjualan tunai harian", category: "Penjualan", type: "masuk", amount: 6_840_000, method: "Kasir" },
+  { id: "L-1042", date: "3 Feb", desc: "Komisi layanan digital (PPOB)", category: "Komisi Agen", type: "masuk", amount: 96_500, method: "Sistem" },
+  { id: "L-1041", date: "2 Feb", desc: "Listrik & air toko", category: "Utilitas", type: "keluar", amount: 1_240_000, method: "Transfer" },
+  { id: "L-1040", date: "2 Feb", desc: "Settlement QRIS H-1", category: "Penjualan", type: "masuk", amount: 2_410_000, method: "QRIS" },
+  { id: "L-1039", date: "1 Feb", desc: "Gaji karyawan (2 orang)", category: "Gaji", type: "keluar", amount: 8_600_000, method: "Transfer" },
+  { id: "L-1038", date: "31 Jan", desc: "Pembelian stok UD Makmur (PO-2195)", category: "Pembelian", type: "keluar", amount: 6_120_000, method: "Transfer" },
+  { id: "L-1037", date: "31 Jan", desc: "Penjualan tunai harian", category: "Penjualan", type: "masuk", amount: 7_120_000, method: "Kasir" },
+  { id: "L-1036", date: "30 Jan", desc: "Plastik & kemasan", category: "Operasional", type: "keluar", amount: 210_000, method: "Kas" },
+  { id: "L-1035", date: "30 Jan", desc: "Cicilan piutang CV Sinar Jaya", category: "Piutang", type: "masuk", amount: 1_500_000, method: "Transfer" },
+  { id: "L-1034", date: "29 Jan", desc: "Internet & lisensi kasir", category: "Utilitas", type: "keluar", amount: 349_000, method: "Debit" },
+];
+
+export type Debt = {
+  id: string;
+  party: string;
+  desc: string;
+  amount: number;
+  due: string;
+  status: "berjalan" | "jatuh tempo" | "lunas";
+};
+
+export const RECEIVABLES: Debt[] = [
+  { id: "AR-208", party: "CV Sinar Jaya", desc: "Pembelian grosir Januari (ORD-0988)", amount: 4_350_000, due: "10 Feb", status: "berjalan" },
+  { id: "AR-207", party: "Kafe Kopi Kita", desc: "Pasokan kopi mingguan", amount: 1_720_000, due: "7 Feb", status: "jatuh tempo" },
+  { id: "AR-206", party: "Warung Bu Tini", desc: "Sembako mingguan", amount: 640_000, due: "12 Feb", status: "berjalan" },
+  { id: "AR-205", party: "Andi Prasetyo", desc: "Pesanan katering kecil", amount: 380_000, due: "28 Jan", status: "lunas" },
+];
+
+export const PAYABLES: Debt[] = [
+  { id: "AP-311", party: "UD Makmur Sembako", desc: "PO-2195 · Sembako", amount: 6_120_000, due: "11 Feb", status: "jatuh tempo" },
+  { id: "AP-310", party: "CV Tirta Kencana", desc: "PO-2200 · Minuman", amount: 3_480_000, due: "3 Mar", status: "berjalan" },
+  { id: "AP-309", party: "PT Griya Bersih", desc: "PO-2197 · Rumah tangga", amount: 2_890_000, due: "27 Feb", status: "berjalan" },
+  { id: "AP-308", party: "CV Sinar Higienis", desc: "PO-2194 · Perawatan", amount: 1_250_000, due: "9 Feb", status: "jatuh tempo" },
+  { id: "AP-307", party: "UD Berkah Farm", desc: "PO-2193 · Telur & segar", amount: 980_000, due: "20 Jan", status: "lunas" },
+];
+
 /* ---------- notifikasi ---------- */
 
 export const NOTIFICATIONS = [

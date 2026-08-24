@@ -1,5 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
-import { DIGITAL_TXS, ORDERS, PRODUCTS, type DigitalTx, type Product, type Settings as StoreSettings } from "./data";
+import {
+  DIGITAL_TXS,
+  LEDGER,
+  ORDERS,
+  PAYABLES,
+  PRODUCTS,
+  PURCHASE_ORDERS,
+  RECEIVABLES,
+  SUPPLIERS,
+  type Debt,
+  type DigitalTx,
+  type LedgerEntry,
+  type Product,
+  type PurchaseOrder,
+  type Settings as StoreSettings,
+  type Supplier,
+} from "./data";
 import { Sidebar, type View } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { Modal, ModalHead, Switch, ToastStack, type Toast } from "./components/ui";
@@ -7,8 +23,11 @@ import { Dashboard } from "./views/Dashboard";
 import { POS } from "./views/POS";
 import { Digital } from "./views/Digital";
 import { Inventory } from "./views/Inventory";
+import { Purchasing } from "./views/Purchasing";
+import { Suppliers } from "./views/Suppliers";
 import { Orders } from "./views/Orders";
 import { Finance } from "./views/Finance";
+import { Bookkeeping } from "./views/Bookkeeping";
 import { Customers } from "./views/Customers";
 
 const META: Record<View, { crumb: string; title: string }> = {
@@ -16,8 +35,11 @@ const META: Record<View, { crumb: string; title: string }> = {
   pos: { crumb: "Kasir", title: "Point of Sale" },
   digital: { crumb: "Layanan Digital", title: "Kios Agen & PPOB" },
   inventory: { crumb: "Inventaris", title: "Manajemen Stok" },
+  purchasing: { crumb: "Pembelian", title: "Purchase Order Supplier" },
+  suppliers: { crumb: "Supplier", title: "Manajemen Supplier" },
   orders: { crumb: "Pesanan", title: "Pesanan Masuk" },
   finance: { crumb: "Keuangan", title: "Arus Kas & Keuangan" },
+  bookkeeping: { crumb: "Pembukuan", title: "Pembukuan & Hutang Piutang" },
   customers: { crumb: "Pelanggan", title: "Pelanggan & Member" },
 };
 
@@ -87,6 +109,11 @@ export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [digitalTxs, setDigitalTxs] = useState<DigitalTx[]>(DIGITAL_TXS);
+  const [suppliers, setSuppliers] = useState<Supplier[]>(SUPPLIERS);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(PURCHASE_ORDERS);
+  const [ledger, setLedger] = useState<LedgerEntry[]>(LEDGER);
+  const [receivables, setReceivables] = useState<Debt[]>(RECEIVABLES);
+  const [payables, setPayables] = useState<Debt[]>(PAYABLES);
   const [settings, setSettings] = useState<StoreSettings>({
     storeName: "Lumbung Mart",
     address: "Jl. Melati No. 12, Yogyakarta",
@@ -107,6 +134,7 @@ export default function App() {
 
   const lowCount = products.filter((p) => p.stock <= p.minStock).length;
   const pendingOrders = ORDERS.filter((o) => o.status === "menunggu" || o.status === "diproses").length;
+  const dueBills = payables.filter((p) => p.status === "jatuh tempo").length;
 
   return (
     <div className="min-h-screen">
@@ -119,6 +147,8 @@ export default function App() {
         lowCount={lowCount}
         pendingOrders={pendingOrders}
         digitalCount={digitalTxs.length}
+        poOpenCount={purchaseOrders.filter((p) => p.status === "dikirim").length}
+        dueBills={dueBills}
         onSettings={() => setSettingsOpen(true)}
         onLogout={() => push("Ini aplikasi demo — sesi Anda tetap aman.", "info")}
       />
@@ -136,14 +166,40 @@ export default function App() {
         />
 
         <main key={view} className="view-enter mx-auto max-w-[1440px] px-4 py-6 lg:px-8">
-          {view === "dashboard" && <Dashboard products={products} digitalTxs={digitalTxs} onNavigate={setView} push={push} />}
+          {view === "dashboard" && <Dashboard products={products} digitalTxs={digitalTxs} dueBills={dueBills} onNavigate={setView} push={push} />}
           {view === "pos" && (
             <POS products={products} setProducts={setProducts} settings={settings} push={push} query={posQuery} setQuery={setPosQuery} />
           )}
           {view === "digital" && <Digital txs={digitalTxs} setTxs={setDigitalTxs} push={push} />}
           {view === "inventory" && <Inventory products={products} setProducts={setProducts} push={push} />}
+          {view === "purchasing" && (
+            <Purchasing
+              suppliers={suppliers}
+              purchaseOrders={purchaseOrders}
+              setPurchaseOrders={setPurchaseOrders}
+              products={products}
+              setProducts={setProducts}
+              setPayables={setPayables}
+              setLedger={setLedger}
+              push={push}
+            />
+          )}
+          {view === "suppliers" && (
+            <Suppliers suppliers={suppliers} setSuppliers={setSuppliers} purchaseOrders={purchaseOrders} payables={payables} push={push} />
+          )}
           {view === "orders" && <Orders push={push} />}
           {view === "finance" && <Finance push={push} />}
+          {view === "bookkeeping" && (
+            <Bookkeeping
+              ledger={ledger}
+              setLedger={setLedger}
+              receivables={receivables}
+              setReceivables={setReceivables}
+              payables={payables}
+              setPayables={setPayables}
+              push={push}
+            />
+          )}
           {view === "customers" && <Customers push={push} />}
         </main>
 

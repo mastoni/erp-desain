@@ -53,11 +53,13 @@ function KpiCard({
 export function Dashboard({
   products,
   digitalTxs,
+  dueBills,
   onNavigate,
   push,
 }: {
   products: Product[];
   digitalTxs: DigitalTx[];
+  dueBills: number;
   onNavigate: (v: View) => void;
   push: Push;
 }) {
@@ -93,6 +95,7 @@ export function Dashboard({
     "Rata-rata belanja Rp 51,5 rb / struk",
     `Stok menipis: ${lowStock.length} SKU`,
     `${pending} pesanan menunggu diproses`,
+    dueBills > 0 ? `${dueBills} tagihan hutang jatuh tempo` : "Semua hutang usaha terkendali",
     "Kasir aktif: Rani · Dimas",
     "Settlement QRIS pukul 23:00 WIB",
     "Backup otomatis berikutnya 02:00 WIB",

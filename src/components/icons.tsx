@@ -121,6 +121,21 @@ export const IconHistory = (p: P) => (
 export const IconSwap = (p: P) => (
   <svg {...base(p)}><path d="M7 4v13" /><path d="M3.5 7.5L7 4l3.5 3.5" /><path d="M17 20V7" /><path d="M13.5 16.5L17 20l3.5-3.5" /></svg>
 );
+export const IconTruck = (p: P) => (
+  <svg {...base(p)}><path d="M2.5 6.5h12V17h-12z" /><path d="M14.5 9.5h3.4l3.1 3.3V17h-2.4" /><circle cx="7" cy="18.3" r="1.9" /><circle cx="17.2" cy="18.3" r="1.9" /><path d="M9 17h6.2" /></svg>
+);
+export const IconBuilding = (p: P) => (
+  <svg {...base(p)}><rect x="5" y="3.5" width="14" height="17" rx="1.2" /><path d="M9 7.5h2M13 7.5h2M9 11.5h2M13 11.5h2M9 15.5h2M13 15.5h2" /><path d="M10.5 20.5v-2.8h3v2.8" /></svg>
+);
+export const IconBook = (p: P) => (
+  <svg {...base(p)}><path d="M4.5 19.2V5.3a1.8 1.8 0 0 1 1.8-1.8h13.2v15.7H6.3a1.8 1.8 0 0 0-1.8 1.8z" /><path d="M4.5 19.2a1.8 1.8 0 0 0 1.8 1.8h13.2" /><path d="M9 3.5v15.7" /></svg>
+);
+export const IconStar = (p: P) => (
+  <svg {...base(p)}><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8L12 3.6z" /></svg>
+);
+export const IconCoins = (p: P) => (
+  <svg {...base(p)}><ellipse cx="9" cy="7" rx="6" ry="3" /><path d="M3 7v5c0 1.7 2.7 3 6 3s6-1.3 6-3V7" /><path d="M3 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" /><path d="M21 10.5v5c0 1.4-1.8 2.5-4.2 2.9" /></svg>
+);
 export const IconZap = (p: P) => (
   <svg {...base(p)}><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z" /></svg>
 );
