@@ -70,6 +70,7 @@ export function Inventory({
         name: np.name.trim(),
         category: np.category,
         price,
+        cost: Math.round(price * 0.78),
         stock,
         minStock: Number(np.minStock) || 5,
         sold: 0,

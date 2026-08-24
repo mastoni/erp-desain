@@ -9,6 +9,7 @@ import {
   IconLogout,
   IconReceipt,
   IconSliders,
+  IconTag,
   IconTrendUp,
   IconTruck,
   IconUsers,
@@ -23,13 +24,15 @@ export type View =
   | "digital"
   | "sales"
   | "orders"
+  | "products"
   | "inventory"
   | "purchasing"
   | "suppliers"
   | "finance"
   | "bookkeeping"
   | "reports"
-  | "customers";
+  | "customers"
+  | "settings";
 
 type NavItem = {
   id: View;
@@ -61,7 +64,6 @@ export function Sidebar({
   digitalCount,
   poOpenCount,
   dueBills,
-  onSettings,
   onLogout,
 }: {
   view: View;
@@ -73,7 +75,6 @@ export function Sidebar({
   digitalCount: number;
   poOpenCount: number;
   dueBills: number;
-  onSettings: () => void;
   onLogout: () => void;
 }) {
   const groups: { title: string; items: NavItem[] }[] = [
@@ -95,6 +96,7 @@ export function Sidebar({
     {
       title: "Pasokan",
       items: [
+        { id: "products", label: "Produk", icon: (p) => <IconTag {...p} /> },
         { id: "purchasing", label: "Pembelian", icon: (p) => <IconTruck {...p} />, badge: poOpenCount, badgeTone: "plain" },
         { id: "suppliers", label: "Supplier", icon: (p) => <IconBuilding {...p} /> },
         { id: "inventory", label: "Inventaris", icon: (p) => <IconBox {...p} />, badge: lowCount, badgeTone: "honey" },
@@ -111,6 +113,10 @@ export function Sidebar({
     {
       title: "Relasi",
       items: [{ id: "customers", label: "Pelanggan", icon: (p) => <IconUsers {...p} /> }],
+    },
+    {
+      title: "Sistem",
+      items: [{ id: "settings", label: "Pengaturan Toko", icon: (p) => <IconSliders {...p} /> }],
     },
   ];
 
@@ -182,15 +188,6 @@ export function Sidebar({
               </ul>
             </div>
           ))}
-
-          <p className="px-2.5 pb-2 pt-6 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Lainnya</p>
-          <button
-            onClick={onSettings}
-            className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13.5px] font-semibold text-white/55 transition-all hover:bg-white/[0.05] hover:text-white/90 cursor-pointer"
-          >
-            <span className="text-white/45 group-hover:text-white/80"><IconSliders width={17} height={17} /></span>
-            Pengaturan Toko
-          </button>
 
           {/* shift */}
           <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.04] p-3.5">
