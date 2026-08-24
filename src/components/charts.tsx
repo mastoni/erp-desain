@@ -227,6 +227,31 @@ export function PairBars({ data }: { data: { m: string; masuk: number; keluar: n
   );
 }
 
+/* ============ Barcode dekoratif deterministik ============ */
+export function Barcode({ value, className = "" }: { value: string; className?: string }) {
+  let h = 2166136261;
+  for (const c of value) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  const rnd = () => {
+    h ^= h << 13; h >>>= 0; h ^= h >>> 17; h ^= h << 5; h >>>= 0;
+    return h / 4294967296;
+  };
+  const bars: { x: number; w: number }[] = [];
+  let x = 0;
+  const total = 62;
+  while (x < total - 1.4) {
+    const w = 0.7 + Math.round(rnd() * 2) * 0.8;
+    bars.push({ x, w });
+    x += w + 0.7 + rnd() * 1.1;
+  }
+  return (
+    <svg viewBox={`0 0 ${total} 20`} preserveAspectRatio="none" className={className} aria-hidden>
+      {bars.map((b, i) => (
+        <rect key={i} x={b.x} y="0" width={b.w} height="20" />
+      ))}
+    </svg>
+  );
+}
+
 /* ============ Bar mini per jam ============ */
 export function HourBars({ data }: { data: { h: string; v: number }[] }) {
   const [hover, setHover] = useState<number | null>(null);

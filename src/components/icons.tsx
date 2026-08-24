@@ -154,3 +154,12 @@ export const IconSend = (p: P) => (
 export const IconShieldPlus = (p: P) => (
   <svg {...base(p)}><path d="M12 2.5 20 6v6c0 5-3.4 8-8 9.5C7.4 20 4 17 4 12V6l8-3.5z" /><path d="M12 9v6" /><path d="M9 12h6" /></svg>
 );
+export const IconTag = (p: P) => (
+  <svg {...base(p)}><path d="M3.5 10.5V4.5a1 1 0 0 1 1-1h6l9 9a1.4 1.4 0 0 1 0 2l-5 5a1.4 1.4 0 0 1-2 0l-9-9z" /><circle cx="8" cy="8" r="1.4" /></svg>
+);
+export const IconDrawer = (p: P) => (
+  <svg {...base(p)}><rect x="3" y="4.5" width="18" height="15" rx="1.5" /><path d="M3 10h18" /><path d="M9.5 7.2h5" /><path d="M9.5 14h5" /></svg>
+);
+export const IconBarcode = (p: P) => (
+  <svg {...base(p)}><path d="M4 6v12" /><path d="M7.5 6v12" /><path d="M10 6v9" /><path d="M13 6v12" /><path d="M16.5 6v9" /><path d="M20 6v12" /></svg>
+);

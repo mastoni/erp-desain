@@ -4,38 +4,39 @@ export type Product = {
   name: string;
   category: string;
   price: number;
+  cost: number;
   stock: number;
   minStock: number;
   sold: number;
 };
 
 export const PRODUCTS: Product[] = [
-  { id: "p01", sku: "SMB-01", name: "Beras Rojolele 5 kg", category: "Sembako", price: 68000, stock: 42, minStock: 10, sold: 86 },
-  { id: "p02", sku: "SMB-02", name: "Minyak Goreng Fortune 2 L", category: "Sembako", price: 36500, stock: 18, minStock: 12, sold: 132 },
-  { id: "p03", sku: "SMB-03", name: "Gula Pasir Gulaku 1 kg", category: "Sembako", price: 17500, stock: 55, minStock: 15, sold: 210 },
-  { id: "p04", sku: "SMB-04", name: "Telur Ayam Negeri 1 kg", category: "Sembako", price: 28500, stock: 9, minStock: 12, sold: 174 },
-  { id: "p05", sku: "SMB-05", name: "Tepung Segitiga Biru 1 kg", category: "Sembako", price: 12500, stock: 40, minStock: 10, sold: 96 },
-  { id: "p06", sku: "SMB-06", name: "Indomie Goreng (pcs)", category: "Sembako", price: 3500, stock: 240, minStock: 60, sold: 940 },
-  { id: "p07", sku: "MNM-01", name: "Air Mineral 600 ml", category: "Minuman", price: 4000, stock: 180, minStock: 48, sold: 720 },
-  { id: "p08", sku: "MNM-02", name: "Kopi Susu Aren 250 ml", category: "Minuman", price: 15000, stock: 26, minStock: 12, sold: 388 },
-  { id: "p09", sku: "MNM-03", name: "Teh Botol 450 ml", category: "Minuman", price: 5500, stock: 64, minStock: 24, sold: 410 },
-  { id: "p10", sku: "MNM-04", name: "Susu UHT Cokelat 250 ml", category: "Minuman", price: 6000, stock: 11, minStock: 24, sold: 356 },
-  { id: "p11", sku: "MNM-05", name: "Jus Jeruk Peras 1 L", category: "Minuman", price: 18000, stock: 0, minStock: 6, sold: 120 },
-  { id: "p12", sku: "MNM-06", name: "Sparkling Water 330 ml", category: "Minuman", price: 12000, stock: 33, minStock: 10, sold: 84 },
-  { id: "p13", sku: "SNK-01", name: "Keripik Singkong Balado", category: "Snack", price: 9500, stock: 47, minStock: 15, sold: 264 },
-  { id: "p14", sku: "SNK-02", name: "Cokelat Silverqueen 65 g", category: "Snack", price: 17500, stock: 29, minStock: 12, sold: 190 },
-  { id: "p15", sku: "SNK-03", name: "Biskuit Kaleng 700 g", category: "Snack", price: 32000, stock: 14, minStock: 8, sold: 62 },
-  { id: "p16", sku: "SNK-04", name: "Kacang Garuda 250 g", category: "Snack", price: 13500, stock: 38, minStock: 12, sold: 148 },
-  { id: "p17", sku: "SNK-05", name: "Roti Tawar Sari Roti", category: "Snack", price: 14000, stock: 7, minStock: 10, sold: 205 },
-  { id: "p18", sku: "SNK-06", name: "Wafer Cokelat Tango", category: "Snack", price: 8500, stock: 72, minStock: 20, sold: 318 },
-  { id: "p19", sku: "PRW-01", name: "Sabun Mandi Lifebuoy 100 g", category: "Perawatan", price: 6500, stock: 88, minStock: 24, sold: 296 },
-  { id: "p20", sku: "PRW-02", name: "Sampo Pantene 170 ml", category: "Perawatan", price: 23500, stock: 21, minStock: 10, sold: 118 },
-  { id: "p21", sku: "PRW-03", name: "Pasta Gigi Pepsodent 190 g", category: "Perawatan", price: 12500, stock: 45, minStock: 15, sold: 232 },
-  { id: "p22", sku: "PRW-04", name: "Tisu Wajah 250 sheet", category: "Perawatan", price: 15500, stock: 52, minStock: 15, sold: 186 },
-  { id: "p23", sku: "RMT-01", name: "Deterjen Rinso 770 g", category: "Rumah Tangga", price: 24500, stock: 34, minStock: 12, sold: 154 },
-  { id: "p24", sku: "RMT-02", name: "Sabun Cuci Sunlight 755 ml", category: "Rumah Tangga", price: 11500, stock: 41, minStock: 15, sold: 268 },
-  { id: "p25", sku: "RMT-03", name: "Kantong Sampah 60×100", category: "Rumah Tangga", price: 9000, stock: 60, minStock: 20, sold: 92 },
-  { id: "p26", sku: "RMT-04", name: "Karbol Wangi 800 ml", category: "Rumah Tangga", price: 15500, stock: 27, minStock: 10, sold: 104 },
+  { id: "p01", sku: "SMB-01", name: "Beras Rojolele 5 kg", category: "Sembako", price: 68000, cost: 59500, stock: 42, minStock: 10, sold: 86 },
+  { id: "p02", sku: "SMB-02", name: "Minyak Goreng Fortune 2 L", category: "Sembako", price: 36500, cost: 32400, stock: 18, minStock: 12, sold: 132 },
+  { id: "p03", sku: "SMB-03", name: "Gula Pasir Gulaku 1 kg", category: "Sembako", price: 17500, cost: 15200, stock: 55, minStock: 15, sold: 210 },
+  { id: "p04", sku: "SMB-04", name: "Telur Ayam Negeri 1 kg", category: "Sembako", price: 28500, cost: 24800, stock: 9, minStock: 12, sold: 174 },
+  { id: "p05", sku: "SMB-05", name: "Tepung Segitiga Biru 1 kg", category: "Sembako", price: 12500, cost: 10600, stock: 40, minStock: 10, sold: 96 },
+  { id: "p06", sku: "SMB-06", name: "Indomie Goreng (pcs)", category: "Sembako", price: 3500, cost: 2850, stock: 240, minStock: 60, sold: 940 },
+  { id: "p07", sku: "MNM-01", name: "Air Mineral 600 ml", category: "Minuman", price: 4000, cost: 2400, stock: 180, minStock: 48, sold: 720 },
+  { id: "p08", sku: "MNM-02", name: "Kopi Susu Aren 250 ml", category: "Minuman", price: 15000, cost: 9800, stock: 26, minStock: 12, sold: 388 },
+  { id: "p09", sku: "MNM-03", name: "Teh Botol 450 ml", category: "Minuman", price: 5500, cost: 3900, stock: 64, minStock: 24, sold: 410 },
+  { id: "p10", sku: "MNM-04", name: "Susu UHT Cokelat 250 ml", category: "Minuman", price: 6000, cost: 4400, stock: 11, minStock: 24, sold: 356 },
+  { id: "p11", sku: "MNM-05", name: "Jus Jeruk Peras 1 L", category: "Minuman", price: 18000, cost: 12500, stock: 0, minStock: 6, sold: 120 },
+  { id: "p12", sku: "MNM-06", name: "Sparkling Water 330 ml", category: "Minuman", price: 12000, cost: 7800, stock: 33, minStock: 10, sold: 84 },
+  { id: "p13", sku: "SNK-01", name: "Keripik Singkong Balado", category: "Snack", price: 9500, cost: 6400, stock: 47, minStock: 15, sold: 264 },
+  { id: "p14", sku: "SNK-02", name: "Cokelat Silverqueen 65 g", category: "Snack", price: 17500, cost: 13400, stock: 29, minStock: 12, sold: 190 },
+  { id: "p15", sku: "SNK-03", name: "Biskuit Kaleng 700 g", category: "Snack", price: 32000, cost: 25600, stock: 14, minStock: 8, sold: 62 },
+  { id: "p16", sku: "SNK-04", name: "Kacang Garuda 250 g", category: "Snack", price: 13500, cost: 10200, stock: 38, minStock: 12, sold: 148 },
+  { id: "p17", sku: "SNK-05", name: "Roti Tawar Sari Roti", category: "Snack", price: 14000, cost: 10800, stock: 7, minStock: 10, sold: 205 },
+  { id: "p18", sku: "SNK-06", name: "Wafer Cokelat Tango", category: "Snack", price: 8500, cost: 5900, stock: 72, minStock: 20, sold: 318 },
+  { id: "p19", sku: "PRW-01", name: "Sabun Mandi Lifebuoy 100 g", category: "Perawatan", price: 6500, cost: 4700, stock: 88, minStock: 24, sold: 296 },
+  { id: "p20", sku: "PRW-02", name: "Sampo Pantene 170 ml", category: "Perawatan", price: 23500, cost: 18200, stock: 21, minStock: 10, sold: 118 },
+  { id: "p21", sku: "PRW-03", name: "Pasta Gigi Pepsodent 190 g", category: "Perawatan", price: 12500, cost: 9600, stock: 45, minStock: 15, sold: 232 },
+  { id: "p22", sku: "PRW-04", name: "Tisu Wajah 250 sheet", category: "Perawatan", price: 15500, cost: 11300, stock: 52, minStock: 15, sold: 186 },
+  { id: "p23", sku: "RMT-01", name: "Deterjen Rinso 770 g", category: "Rumah Tangga", price: 24500, cost: 19400, stock: 34, minStock: 12, sold: 154 },
+  { id: "p24", sku: "RMT-02", name: "Sabun Cuci Sunlight 755 ml", category: "Rumah Tangga", price: 11500, cost: 8800, stock: 41, minStock: 15, sold: 268 },
+  { id: "p25", sku: "RMT-03", name: "Kantong Sampah 60×100", category: "Rumah Tangga", price: 9000, cost: 5900, stock: 60, minStock: 20, sold: 92 },
+  { id: "p26", sku: "RMT-04", name: "Karbol Wangi 800 ml", category: "Rumah Tangga", price: 15500, cost: 11800, stock: 27, minStock: 10, sold: 104 },
 ];
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -270,13 +271,68 @@ export const CUSTOMERS: Customer[] = [
 
 /* ---------- pengaturan toko ---------- */
 
-export type Settings = {
+export type StoreConfig = {
   storeName: string;
   address: string;
+  phone: string;
   taxRate: number;
   footer: string;
   autoPrint: boolean;
+  printer: {
+    model: string;
+    paper: "58mm" | "80mm";
+    copies: number;
+    autoCut: boolean;
+    printLogo: boolean;
+  };
+  barcode: {
+    format: "EAN-13" | "CODE128";
+    prefix: string;
+    autoGenerate: boolean;
+    labelSize: "kecil" | "sedang";
+    showPrice: boolean;
+  };
+  scanner: {
+    type: "USB HID" | "Bluetooth";
+    autoEnter: boolean;
+    sound: boolean;
+  };
+  drawer: {
+    openOnPayment: boolean;
+    openOnShift: boolean;
+    delayMs: number;
+  };
 };
+
+export type Settings = StoreConfig;
+
+export const DEFAULT_CONFIG: StoreConfig = {
+  storeName: "Lumbung Mart",
+  address: "Jl. Melati No. 12, Yogyakarta",
+  phone: "0274-556-810",
+  taxRate: 11,
+  footer: "Barang dapat ditukar dalam 1×24 jam dengan menunjukkan struk.",
+  autoPrint: true,
+  printer: { model: "Epson TM-T82", paper: "80mm", copies: 1, autoCut: true, printLogo: true },
+  barcode: { format: "CODE128", prefix: "2891", autoGenerate: true, labelSize: "sedang", showPrice: true },
+  scanner: { type: "USB HID", autoEnter: true, sound: true },
+  drawer: { openOnPayment: true, openOnShift: false, delayMs: 300 },
+};
+
+export const PRINTER_MODELS = [
+  "Epson TM-T82",
+  "Epson TM-T88VI",
+  "TPPOS TP-80C",
+  "Xprinter XP-58IIH",
+  "Bluebam BTP-R580",
+];
+
+export const DEVICES = [
+  { id: "printer", name: "Printer Struk Epson TM-T82", port: "USB001", status: "terhubung" as const },
+  { id: "scanner", name: "Barcode Scanner Honeywell Voyager", port: "COM3 · USB HID", status: "terhubung" as const },
+  { id: "drawer", name: "Laci Kasir EPSON UB-E04", port: "RJ11 · Pin 2", status: "terhubung" as const },
+  { id: "scale", name: "Timbangan Digital CAS SW-1", port: "COM5", status: "offline" as const },
+];
 
 /* ---------- layanan digital (kios agen / PPOB) ---------- */
 
