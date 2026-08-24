@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { ORDERS, PRODUCTS, type Product, type Settings as StoreSettings } from "./data";
+import { DIGITAL_TXS, ORDERS, PRODUCTS, type DigitalTx, type Product, type Settings as StoreSettings } from "./data";
 import { Sidebar, type View } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { Modal, ModalHead, Switch, ToastStack, type Toast } from "./components/ui";
 import { Dashboard } from "./views/Dashboard";
 import { POS } from "./views/POS";
+import { Digital } from "./views/Digital";
 import { Inventory } from "./views/Inventory";
 import { Orders } from "./views/Orders";
 import { Finance } from "./views/Finance";
@@ -13,6 +14,7 @@ import { Customers } from "./views/Customers";
 const META: Record<View, { crumb: string; title: string }> = {
   dashboard: { crumb: "Dasbor", title: "Dasbor Operasional" },
   pos: { crumb: "Kasir", title: "Point of Sale" },
+  digital: { crumb: "Layanan Digital", title: "Kios Agen & PPOB" },
   inventory: { crumb: "Inventaris", title: "Manajemen Stok" },
   orders: { crumb: "Pesanan", title: "Pesanan Masuk" },
   finance: { crumb: "Keuangan", title: "Arus Kas & Keuangan" },
@@ -84,6 +86,7 @@ function SettingsModal({
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [digitalTxs, setDigitalTxs] = useState<DigitalTx[]>(DIGITAL_TXS);
   const [settings, setSettings] = useState<StoreSettings>({
     storeName: "Lumbung Mart",
     address: "Jl. Melati No. 12, Yogyakarta",
@@ -115,6 +118,7 @@ export default function App() {
         onClose={() => setSideOpen(false)}
         lowCount={lowCount}
         pendingOrders={pendingOrders}
+        digitalCount={digitalTxs.length}
         onSettings={() => setSettingsOpen(true)}
         onLogout={() => push("Ini aplikasi demo — sesi Anda tetap aman.", "info")}
       />
@@ -132,10 +136,11 @@ export default function App() {
         />
 
         <main key={view} className="view-enter mx-auto max-w-[1440px] px-4 py-6 lg:px-8">
-          {view === "dashboard" && <Dashboard products={products} onNavigate={setView} push={push} />}
+          {view === "dashboard" && <Dashboard products={products} digitalTxs={digitalTxs} onNavigate={setView} push={push} />}
           {view === "pos" && (
             <POS products={products} setProducts={setProducts} settings={settings} push={push} query={posQuery} setQuery={setPosQuery} />
           )}
+          {view === "digital" && <Digital txs={digitalTxs} setTxs={setDigitalTxs} push={push} />}
           {view === "inventory" && <Inventory products={products} setProducts={setProducts} push={push} />}
           {view === "orders" && <Orders push={push} />}
           {view === "finance" && <Finance push={push} />}

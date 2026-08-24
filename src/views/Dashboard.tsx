@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { HOURLY, ORDERS, PAYMENTS, SALES_30, SALES_7, TRANSACTIONS, type Product } from "../data";
+import { HOURLY, ORDERS, PAYMENTS, SALES_30, SALES_7, TRANSACTIONS, type DigitalTx, type Product } from "../data";
 import { cx, idr, idrShort, num } from "../lib/format";
 import { AreaChart, Donut, HourBars, Sparkline } from "../components/charts";
 import { Badge, Delta, Reveal, SectionHead, useCountUp } from "../components/ui";
 import type { Toast } from "../components/ui";
 import type { View } from "../components/Sidebar";
-import { IconArrowUpRight, IconBox, IconCheck, IconDownload, IconReceipt, IconTrendUp } from "../components/icons";
+import { IconArrowUpRight, IconBox, IconCheck, IconChevronRight, IconDownload, IconReceipt, IconTrendUp, IconZap } from "../components/icons";
+
+const D_CAT_LABEL: Record<string, string> = {
+  pulsa: "Pulsa", data: "Data", ewallet: "E-Wallet", listrik: "Listrik",
+  bpjs: "BPJS", pdam: "PDAM", transfer: "Transfer",
+};
 
 type Push = (msg: string, tone?: Toast["tone"]) => void;
 
@@ -47,14 +52,25 @@ function KpiCard({
 
 export function Dashboard({
   products,
+  digitalTxs,
   onNavigate,
   push,
 }: {
   products: Product[];
+  digitalTxs: DigitalTx[];
   onNavigate: (v: View) => void;
   push: Push;
 }) {
   const [range, setRange] = useState<"7" | "30">("7");
+
+  /* ringkasan layanan digital */
+  const dKomisi = digitalTxs.filter((t) => t.status === "sukses").reduce((s, t) => s + t.commission, 0);
+  const dKomisiAnim = useCountUp(dKomisi);
+  const dCounts = Object.entries(
+    digitalTxs.reduce<Record<string, number>>((acc, t) => ((acc[t.cat] = (acc[t.cat] ?? 0) + 1), acc), {})
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
 
   const series = range === "7" ? SALES_7 : SALES_30;
   const total = series.reduce((s, d) => s + d.value, 0);
@@ -174,6 +190,36 @@ export function Dashboard({
           </div>
         </Reveal>
       </div>
+
+      {/* layanan digital */}
+      <Reveal delay={60}>
+        <div className="card mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-honey-soft text-[#8a5f10]">
+              <IconZap width={19} height={19} />
+              <span className="pulse-dot absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-pine" />
+            </span>
+            <div>
+              <p className="font-display text-[15px] font-bold leading-tight">Layanan Digital Aktif</p>
+              <p className="text-[11.5px] text-fog">Kios agen · PPOB · Pulsa · E-Wallet · Transfer</p>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="num text-[20px] font-bold text-pine">{idr(Math.round(dKomisiAnim))}</span>
+            <span className="text-[11px] text-fog">komisi agen · {digitalTxs.length} transaksi hari ini</span>
+          </div>
+          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            {dCounts.map(([c, n]) => (
+              <Badge key={c} tone="fog">
+                {D_CAT_LABEL[c] ?? c} · {n}
+              </Badge>
+            ))}
+            <button onClick={() => onNavigate("digital")} className="btn-primary ml-1 px-3.5 py-2 text-[12.5px]">
+              Buka Kios <IconChevronRight width={13} height={13} />
+            </button>
+          </div>
+        </div>
+      </Reveal>
 
       {/* baris bawah */}
       <div className="mt-5 grid grid-cols-12 gap-4">

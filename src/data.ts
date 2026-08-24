@@ -232,6 +232,103 @@ export type Settings = {
   autoPrint: boolean;
 };
 
+/* ---------- layanan digital (kios agen / PPOB) ---------- */
+
+export type DigitalCat = "pulsa" | "data" | "ewallet" | "listrik" | "bpjs" | "pdam" | "transfer";
+
+export type DigitalTx = {
+  id: string;
+  ref: string;
+  time: string;
+  cat: DigitalCat;
+  sub: string;
+  provider: string;
+  target: string;
+  nominal: number;
+  fee: number;
+  commission: number;
+  total: number;
+  status: "sukses" | "diproses" | "gagal";
+  token?: string;
+};
+
+export const OPERATORS = [
+  { id: "telkomsel", label: "Telkomsel", color: "#d92c20" },
+  { id: "indosat", label: "Indosat", color: "#e11d63" },
+  { id: "xl", label: "XL Axiata", color: "#1268b3" },
+  { id: "tri", label: "Tri", color: "#e8760c" },
+  { id: "smartfren", label: "Smartfren", color: "#7c3aed" },
+];
+
+export const PULSA_NOMINALS = [5_000, 10_000, 15_000, 20_000, 25_000, 50_000, 100_000];
+
+export const DATA_PACKAGES: Record<string, { id: string; name: string; quota: string; price: number; valid: string }[]> = {
+  telkomsel: [
+    { id: "t1", name: "Internet Max", quota: "3 GB", price: 30_000, valid: "30 hari" },
+    { id: "t2", name: "Internet Max", quota: "6 GB", price: 52_000, valid: "30 hari" },
+    { id: "t3", name: "Internet Max", quota: "15 GB", price: 95_000, valid: "30 hari" },
+    { id: "t4", name: "Internet Sakti", quota: "25 GB", price: 125_000, valid: "30 hari" },
+  ],
+  indosat: [
+    { id: "i1", name: "Freedom Internet", quota: "2 GB", price: 15_000, valid: "30 hari" },
+    { id: "i2", name: "Freedom Internet", quota: "7 GB", price: 40_000, valid: "30 hari" },
+    { id: "i3", name: "Freedom Internet", quota: "14 GB", price: 75_000, valid: "30 hari" },
+    { id: "i4", name: "Freedom U", quota: "28 GB", price: 110_000, valid: "30 hari" },
+  ],
+  xl: [
+    { id: "x1", name: "Xtra Combo", quota: "4 GB", price: 40_000, valid: "30 hari" },
+    { id: "x2", name: "Xtra Combo", quota: "9 GB", price: 65_000, valid: "30 hari" },
+    { id: "x3", name: "Xtra Unlimited", quota: "20 GB", price: 105_000, valid: "30 hari" },
+  ],
+  tri: [
+    { id: "r1", name: "Always On", quota: "3 GB", price: 28_000, valid: "Selamanya" },
+    { id: "r2", name: "Happy", quota: "12 GB", price: 50_000, valid: "30 hari" },
+    { id: "r3", name: "Happy", quota: "25 GB", price: 90_000, valid: "30 hari" },
+  ],
+  smartfren: [
+    { id: "s1", name: "Unlimited Harian", quota: "1 GB/hari", price: 40_000, valid: "28 hari" },
+    { id: "s2", name: "Unlimited Harian", quota: "2 GB/hari", price: 80_000, valid: "28 hari" },
+    { id: "s3", name: "Volume", quota: "30 GB", price: 60_000, valid: "30 hari" },
+  ],
+};
+
+export const EWALLETS = [
+  { id: "gopay", label: "GoPay", color: "#00a4a0" },
+  { id: "ovo", label: "OVO", color: "#6d3fa8" },
+  { id: "dana", label: "DANA", color: "#118ee9" },
+  { id: "shopeepay", label: "ShopeePay", color: "#ee4d2d" },
+  { id: "linkaja", label: "LinkAja", color: "#c0392b" },
+];
+export const EWALLET_NOMINALS = [10_000, 20_000, 50_000, 100_000, 150_000, 200_000, 300_000, 500_000];
+
+export const TOKEN_NOMINALS = [20_000, 50_000, 100_000, 200_000, 500_000, 1_000_000];
+
+export const BANKS = [
+  { id: "bca", label: "BCA", color: "#0060af" },
+  { id: "bri", label: "BRI", color: "#00529c" },
+  { id: "bni", label: "BNI", color: "#f05a22" },
+  { id: "mandiri", label: "Mandiri", color: "#b28c1e" },
+  { id: "bsi", label: "BSI", color: "#00a39d" },
+  { id: "cimb", label: "CIMB Niaga", color: "#ec1c24" },
+];
+export const TRANSFER_NOMINALS = [100_000, 250_000, 500_000, 1_000_000, 2_000_000, 5_000_000];
+export const TARIK_NOMINALS = [50_000, 100_000, 200_000, 300_000, 500_000];
+
+export const DIGITAL_TXS: DigitalTx[] = [
+  { id: "DIG-7301", ref: "PUL-88231140", time: "09:41", cat: "pulsa", sub: "Pulsa Telkomsel", provider: "Telkomsel", target: "0812-9934-1120", nominal: 25_000, fee: 2_000, commission: 1_200, total: 27_000, status: "sukses" },
+  { id: "DIG-7300", ref: "PLN-55120937", time: "09:26", cat: "listrik", sub: "Token PLN", provider: "PLN", target: "5371-0921-4482", nominal: 100_000, fee: 2_500, commission: 1_000, total: 102_500, status: "sukses", token: "4521-8834-9067-1290-3345" },
+  { id: "DIG-7299", ref: "EWT-10228814", time: "09:12", cat: "ewallet", sub: "Top Up GoPay", provider: "GoPay", target: "0857-2210-4471", nominal: 50_000, fee: 1_500, commission: 800, total: 51_500, status: "sukses" },
+  { id: "DIG-7298", ref: "TRF-77451230", time: "08:58", cat: "transfer", sub: "Transfer BRI", provider: "BRI", target: "0038-01-882341-53-1", nominal: 500_000, fee: 6_500, commission: 4_000, total: 506_500, status: "sukses" },
+  { id: "DIG-7297", ref: "PDN-90112245", time: "08:44", cat: "pdam", sub: "PDAM Sleman", provider: "PDAM", target: "1044-8821-33", nominal: 67_500, fee: 2_500, commission: 1_500, total: 70_000, status: "sukses" },
+  { id: "DIG-7296", ref: "DTA-33291807", time: "08:31", cat: "data", sub: "Paket Data XL 9 GB", provider: "XL Axiata", target: "0819-0023-7745", nominal: 65_000, fee: 2_500, commission: 2_000, total: 67_500, status: "sukses" },
+  { id: "DIG-7295", ref: "BJS-44120985", time: "08:19", cat: "bpjs", sub: "BPJS Kesehatan", provider: "BPJS", target: "0001-3388-2210-9", nominal: 105_000, fee: 2_500, commission: 1_500, total: 107_500, status: "sukses" },
+  { id: "DIG-7294", ref: "TRK-66120743", time: "08:05", cat: "transfer", sub: "Tarik Tunai", provider: "Agen", target: "Kas Agen", nominal: 300_000, fee: 5_000, commission: 3_500, total: 305_000, status: "sukses" },
+  { id: "DIG-7293", ref: "EWT-99812306", time: "07:52", cat: "ewallet", sub: "Top Up DANA", provider: "DANA", target: "0813-5567-0912", nominal: 100_000, fee: 1_500, commission: 800, total: 101_500, status: "sukses" },
+  { id: "DIG-7292", ref: "PLN-10293874", time: "07:40", cat: "listrik", sub: "Tagihan PLN", provider: "PLN", target: "5371-4402-9917", nominal: 214_300, fee: 3_000, commission: 1_500, total: 217_300, status: "sukses" },
+  { id: "DIG-7291", ref: "PUL-88230417", time: "07:24", cat: "pulsa", sub: "Pulsa Indosat", provider: "Indosat", target: "0856-1190-2231", nominal: 10_000, fee: 2_000, commission: 1_200, total: 12_000, status: "diproses" },
+  { id: "DIG-7290", ref: "TRF-66310028", time: "07:11", cat: "transfer", sub: "Transfer BCA", provider: "BCA", target: "8830-2214-905", nominal: 1_000_000, fee: 6_500, commission: 4_000, total: 1_006_500, status: "gagal" },
+];
+
 /* ---------- notifikasi ---------- */
 
 export const NOTIFICATIONS = [

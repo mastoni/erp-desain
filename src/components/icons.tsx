@@ -121,3 +121,21 @@ export const IconHistory = (p: P) => (
 export const IconSwap = (p: P) => (
   <svg {...base(p)}><path d="M7 4v13" /><path d="M3.5 7.5L7 4l3.5 3.5" /><path d="M17 20V7" /><path d="M13.5 16.5L17 20l3.5-3.5" /></svg>
 );
+export const IconZap = (p: P) => (
+  <svg {...base(p)}><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z" /></svg>
+);
+export const IconSmartphone = (p: P) => (
+  <svg {...base(p)}><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M10.5 18.5h3" /></svg>
+);
+export const IconWifi = (p: P) => (
+  <svg {...base(p)}><path d="M2.5 9.2a15 15 0 0 1 19 0" /><path d="M5.5 12.6a10.5 10.5 0 0 1 13 0" /><path d="M8.6 15.9a6 6 0 0 1 6.8 0" /><path d="M12 19.5h.01" /></svg>
+);
+export const IconDroplet = (p: P) => (
+  <svg {...base(p)}><path d="M12 3s6.5 7 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10 12 3 12 3z" /></svg>
+);
+export const IconSend = (p: P) => (
+  <svg {...base(p)}><path d="m21.5 2.5-8 19-3.5-7.5L2.5 10.5l19-8z" /><path d="M21.5 2.5 10 14" /></svg>
+);
+export const IconShieldPlus = (p: P) => (
+  <svg {...base(p)}><path d="M12 2.5 20 6v6c0 5-3.4 8-8 9.5C7.4 20 4 17 4 12V6l8-3.5z" /><path d="M12 9v6" /><path d="M9 12h6" /></svg>
+);

@@ -9,9 +9,10 @@ import {
   IconUsers,
   IconWallet,
   IconX,
+  IconZap,
 } from "./icons";
 
-export type View = "dashboard" | "pos" | "inventory" | "orders" | "finance" | "customers";
+export type View = "dashboard" | "pos" | "digital" | "inventory" | "orders" | "finance" | "customers";
 
 type NavItem = {
   id: View;
@@ -40,6 +41,7 @@ export function Sidebar({
   onClose,
   lowCount,
   pendingOrders,
+  digitalCount,
   onSettings,
   onLogout,
 }: {
@@ -49,12 +51,14 @@ export function Sidebar({
   onClose: () => void;
   lowCount: number;
   pendingOrders: number;
+  digitalCount: number;
   onSettings: () => void;
   onLogout: () => void;
 }) {
   const items: NavItem[] = [
     { id: "dashboard", label: "Dasbor", icon: (p) => <IconGrid {...p} /> },
     { id: "pos", label: "Kasir (POS)", icon: (p) => <IconBasket {...p} /> },
+    { id: "digital", label: "Layanan Digital", icon: (p) => <IconZap {...p} />, badge: digitalCount, badgeTone: "plain" },
     { id: "inventory", label: "Inventaris", icon: (p) => <IconBox {...p} />, badge: lowCount, badgeTone: "honey" },
     { id: "orders", label: "Pesanan", icon: (p) => <IconReceipt {...p} />, badge: pendingOrders, badgeTone: "plain" },
     { id: "finance", label: "Keuangan", icon: (p) => <IconWallet {...p} /> },
