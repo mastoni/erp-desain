@@ -102,15 +102,61 @@ export const CASHFLOW = [
 
 export type TxMethod = "Tunai" | "QRIS" | "Debit";
 
-export const TRANSACTIONS = [
-  { id: "TRX-88231", time: "09:14", cashier: "Rani", items: 6, method: "Tunai" as TxMethod, total: 148_500, status: "selesai" },
-  { id: "TRX-88230", time: "09:02", cashier: "Rani", items: 3, method: "QRIS" as TxMethod, total: 56_000, status: "selesai" },
-  { id: "TRX-88229", time: "08:47", cashier: "Dimas", items: 9, method: "Tunai" as TxMethod, total: 232_000, status: "selesai" },
-  { id: "TRX-88228", time: "08:31", cashier: "Dimas", items: 2, method: "Debit" as TxMethod, total: 41_000, status: "refund" },
-  { id: "TRX-88227", time: "08:12", cashier: "Rani", items: 5, method: "QRIS" as TxMethod, total: 97_500, status: "selesai" },
-  { id: "TRX-88226", time: "07:58", cashier: "Rani", items: 4, method: "Tunai" as TxMethod, total: 63_500, status: "selesai" },
-  { id: "TRX-88225", time: "07:41", cashier: "Dimas", items: 7, method: "QRIS" as TxMethod, total: 184_000, status: "selesai" },
-];
+export type SalesRecord = {
+  id: string;
+  ts: number;
+  time: string;
+  cashier: string;
+  items: number;
+  method: TxMethod;
+  total: number;
+  status: "selesai" | "refund";
+  lines: { name: string; qty: number; price: number }[];
+  fresh?: boolean;
+};
+
+/* log penjualan hari ini — dibangkitkan deterministik agar padat & konsisten */
+function lcg(seed: number) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+export const SALES_SEED: SalesRecord[] = (() => {
+  const rnd = lcg(20260214);
+  const methods: TxMethod[] = ["Tunai", "QRIS", "Tunai", "QRIS", "Debit", "Tunai", "QRIS"];
+  const cashiers = ["Rani", "Dimas", "Rani", "Rani", "Dimas"];
+  let minutes = 9 * 60 + 41;
+  const base = new Date();
+  base.setHours(0, 0, 0, 0);
+  return Array.from({ length: 34 }, (_, i) => {
+    minutes -= 4 + Math.floor(rnd() * 9);
+    const lineCount = 2 + Math.floor(rnd() * 5);
+    const picks = new Set<number>();
+    while (picks.size < lineCount) picks.add(Math.floor(rnd() * PRODUCTS.length));
+    const lines = Array.from(picks).map((idx) => ({
+      name: PRODUCTS[idx].name,
+      qty: 1 + Math.floor(rnd() * 3),
+      price: PRODUCTS[idx].price,
+    }));
+    const total = lines.reduce((s, l) => s + l.qty * l.price, 0);
+    const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+    const mm = String(minutes % 60).padStart(2, "0");
+    return {
+      id: `TRX-${88231 - i}`,
+      ts: base.getTime() + minutes * 60_000,
+      time: `${hh}:${mm}`,
+      cashier: cashiers[i % cashiers.length],
+      items: lines.reduce((s, l) => s + l.qty, 0),
+      method: methods[Math.floor(rnd() * methods.length)],
+      total,
+      status: (i % 9 === 4 ? "refund" : "selesai") as SalesRecord["status"],
+      lines,
+    };
+  });
+})();
 
 export type OrderStatus = "menunggu" | "diproses" | "selesai" | "dibatalkan" | "refund";
 

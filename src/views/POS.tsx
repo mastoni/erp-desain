@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CATEGORY_COLORS, CUSTOMERS, type Product, type Settings } from "../data";
+import { CATEGORY_COLORS, CUSTOMERS, type Product, type SalesRecord, type Settings } from "../data";
 import { cx, idr, idrShort, num } from "../lib/format";
 import { Badge, EmptyState, Modal, ModalHead, SectionHead } from "../components/ui";
 import type { Toast } from "../components/ui";
@@ -78,6 +78,7 @@ export function POS({
   push,
   query,
   setQuery,
+  onSale,
 }: {
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
@@ -85,6 +86,7 @@ export function POS({
   push: Push;
   query: string;
   setQuery: (v: string) => void;
+  onSale?: (rec: SalesRecord) => void;
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customer, setCustomer] = useState("Umum");
@@ -207,6 +209,18 @@ export function POS({
         return l ? { ...p, stock: Math.max(0, p.stock - l.qty), sold: p.sold + l.qty } : p;
       })
     );
+    onSale?.({
+      id: trxId,
+      ts: Date.now(),
+      time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+      cashier: "Rani",
+      items: lines.reduce((s, l) => s + l.qty, 0),
+      method,
+      total,
+      status: "selesai",
+      lines: lines.map((l) => ({ name: l.p.name, qty: l.qty, price: l.p.price })),
+      fresh: true,
+    });
     push(`Transaksi ${rec.id} berhasil — ${idr(rec.total)}.`, "success");
   };
 

@@ -4,10 +4,12 @@ import {
   IconBook,
   IconBox,
   IconBuilding,
+  IconFile,
   IconGrid,
   IconLogout,
   IconReceipt,
   IconSliders,
+  IconTrendUp,
   IconTruck,
   IconUsers,
   IconWallet,
@@ -19,12 +21,14 @@ export type View =
   | "dashboard"
   | "pos"
   | "digital"
+  | "sales"
   | "orders"
   | "inventory"
   | "purchasing"
   | "suppliers"
   | "finance"
   | "bookkeeping"
+  | "reports"
   | "customers";
 
 type NavItem = {
@@ -79,24 +83,34 @@ export function Sidebar({
         { id: "dashboard", label: "Dasbor", icon: (p) => <IconGrid {...p} /> },
         { id: "pos", label: "Kasir (POS)", icon: (p) => <IconBasket {...p} /> },
         { id: "digital", label: "Layanan Digital", icon: (p) => <IconZap {...p} />, badge: digitalCount, badgeTone: "plain" },
+      ],
+    },
+    {
+      title: "Transaksi",
+      items: [
+        { id: "sales", label: "Penjualan", icon: (p) => <IconTrendUp {...p} /> },
         { id: "orders", label: "Pesanan", icon: (p) => <IconReceipt {...p} />, badge: pendingOrders, badgeTone: "plain" },
       ],
     },
     {
-      title: "Manajemen",
+      title: "Pasokan",
       items: [
-        { id: "inventory", label: "Inventaris", icon: (p) => <IconBox {...p} />, badge: lowCount, badgeTone: "honey" },
         { id: "purchasing", label: "Pembelian", icon: (p) => <IconTruck {...p} />, badge: poOpenCount, badgeTone: "plain" },
         { id: "suppliers", label: "Supplier", icon: (p) => <IconBuilding {...p} /> },
+        { id: "inventory", label: "Inventaris", icon: (p) => <IconBox {...p} />, badge: lowCount, badgeTone: "honey" },
       ],
     },
     {
-      title: "Keuangan & Relasi",
+      title: "Keuangan",
       items: [
+        { id: "bookkeeping", label: "Pembukuan Keuangan", icon: (p) => <IconBook {...p} />, badge: dueBills, badgeTone: "honey" },
         { id: "finance", label: "Laporan Keuangan", icon: (p) => <IconWallet {...p} /> },
-        { id: "bookkeeping", label: "Pembukuan", icon: (p) => <IconBook {...p} />, badge: dueBills, badgeTone: "honey" },
-        { id: "customers", label: "Pelanggan", icon: (p) => <IconUsers {...p} /> },
+        { id: "reports", label: "Laporan", icon: (p) => <IconFile {...p} /> },
       ],
+    },
+    {
+      title: "Relasi",
+      items: [{ id: "customers", label: "Pelanggan", icon: (p) => <IconUsers {...p} /> }],
     },
   ];
 

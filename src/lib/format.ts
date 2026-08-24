@@ -36,3 +36,19 @@ export function pct(n: number, signed = true): string {
   const s = n.toLocaleString("id-ID", { maximumFractionDigits: 1 });
   return signed && n > 0 ? `+${s}%` : `${s}%`;
 }
+
+/** Unduh data sebagai file CSV (pemisah ; kompatibel Excel ID) */
+export function downloadCsv(filename: string, rows: (string | number)[][]) {
+  const csv = rows
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";"))
+    .join("\r\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

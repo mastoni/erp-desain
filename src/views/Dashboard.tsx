@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HOURLY, ORDERS, PAYMENTS, SALES_30, SALES_7, TRANSACTIONS, type DigitalTx, type Product } from "../data";
+import { HOURLY, ORDERS, PAYMENTS, SALES_30, SALES_7, type DigitalTx, type Product, type SalesRecord } from "../data";
 import { cx, idr, idrShort, num } from "../lib/format";
 import { AreaChart, Donut, HourBars, Sparkline } from "../components/charts";
 import { Badge, Delta, Reveal, SectionHead, useCountUp } from "../components/ui";
@@ -54,12 +54,14 @@ export function Dashboard({
   products,
   digitalTxs,
   dueBills,
+  sales,
   onNavigate,
   push,
 }: {
   products: Product[];
   digitalTxs: DigitalTx[];
   dueBills: number;
+  sales: SalesRecord[];
   onNavigate: (v: View) => void;
   push: Push;
 }) {
@@ -265,8 +267,8 @@ export function Dashboard({
           <div className="card h-full overflow-hidden">
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <h3 className="font-display text-[16px] font-bold">Transaksi Terbaru</h3>
-              <button onClick={() => onNavigate("orders")} className="flex items-center gap-1 text-xs font-bold text-pine hover:underline cursor-pointer">
-                Semua <IconArrowUpRight width={12} height={12} />
+              <button onClick={() => onNavigate("sales")} className="flex items-center gap-1 text-xs font-bold text-pine hover:underline cursor-pointer">
+                Modul Penjualan <IconArrowUpRight width={12} height={12} />
               </button>
             </div>
             <div className="overflow-x-auto">
@@ -281,8 +283,8 @@ export function Dashboard({
                   </tr>
                 </thead>
                 <tbody>
-                  {TRANSACTIONS.map((t) => (
-                    <tr key={t.id} className="transition-colors hover:bg-paper/60">
+                  {sales.slice(0, 7).map((t) => (
+                    <tr key={t.id} className="row-in transition-colors hover:bg-paper/60">
                       <td className="td">
                         <span className="num text-[12.5px] font-semibold">{t.id}</span>
                         {t.status === "refund" && <Badge tone="clay" className="ml-2">refund</Badge>}

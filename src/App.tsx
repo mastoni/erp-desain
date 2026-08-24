@@ -7,12 +7,14 @@ import {
   PRODUCTS,
   PURCHASE_ORDERS,
   RECEIVABLES,
+  SALES_SEED,
   SUPPLIERS,
   type Debt,
   type DigitalTx,
   type LedgerEntry,
   type Product,
   type PurchaseOrder,
+  type SalesRecord,
   type Settings as StoreSettings,
   type Supplier,
 } from "./data";
@@ -22,24 +24,28 @@ import { Modal, ModalHead, Switch, ToastStack, type Toast } from "./components/u
 import { Dashboard } from "./views/Dashboard";
 import { POS } from "./views/POS";
 import { Digital } from "./views/Digital";
+import { Sales } from "./views/Sales";
 import { Inventory } from "./views/Inventory";
 import { Purchasing } from "./views/Purchasing";
 import { Suppliers } from "./views/Suppliers";
 import { Orders } from "./views/Orders";
 import { Finance } from "./views/Finance";
 import { Bookkeeping } from "./views/Bookkeeping";
+import { Reports } from "./views/Reports";
 import { Customers } from "./views/Customers";
 
 const META: Record<View, { crumb: string; title: string }> = {
   dashboard: { crumb: "Dasbor", title: "Dasbor Operasional" },
   pos: { crumb: "Kasir", title: "Point of Sale" },
   digital: { crumb: "Layanan Digital", title: "Kios Agen & PPOB" },
-  inventory: { crumb: "Inventaris", title: "Manajemen Stok" },
+  sales: { crumb: "Penjualan", title: "Transaksi Penjualan" },
+  orders: { crumb: "Pesanan", title: "Pesanan Masuk" },
   purchasing: { crumb: "Pembelian", title: "Purchase Order Supplier" },
   suppliers: { crumb: "Supplier", title: "Manajemen Supplier" },
-  orders: { crumb: "Pesanan", title: "Pesanan Masuk" },
+  inventory: { crumb: "Inventaris", title: "Manajemen Stok" },
+  bookkeeping: { crumb: "Pembukuan", title: "Pembukuan Keuangan" },
   finance: { crumb: "Keuangan", title: "Arus Kas & Keuangan" },
-  bookkeeping: { crumb: "Pembukuan", title: "Pembukuan & Hutang Piutang" },
+  reports: { crumb: "Laporan", title: "Laporan & Analisis" },
   customers: { crumb: "Pelanggan", title: "Pelanggan & Member" },
 };
 
@@ -109,6 +115,7 @@ export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [digitalTxs, setDigitalTxs] = useState<DigitalTx[]>(DIGITAL_TXS);
+  const [sales, setSales] = useState<SalesRecord[]>(SALES_SEED);
   const [suppliers, setSuppliers] = useState<Supplier[]>(SUPPLIERS);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(PURCHASE_ORDERS);
   const [ledger, setLedger] = useState<LedgerEntry[]>(LEDGER);
@@ -166,11 +173,22 @@ export default function App() {
         />
 
         <main key={view} className="view-enter mx-auto max-w-[1440px] px-4 py-6 lg:px-8">
-          {view === "dashboard" && <Dashboard products={products} digitalTxs={digitalTxs} dueBills={dueBills} onNavigate={setView} push={push} />}
+          {view === "dashboard" && (
+            <Dashboard products={products} digitalTxs={digitalTxs} dueBills={dueBills} sales={sales} onNavigate={setView} push={push} />
+          )}
           {view === "pos" && (
-            <POS products={products} setProducts={setProducts} settings={settings} push={push} query={posQuery} setQuery={setPosQuery} />
+            <POS
+              products={products}
+              setProducts={setProducts}
+              settings={settings}
+              push={push}
+              query={posQuery}
+              setQuery={setPosQuery}
+              onSale={(rec) => setSales((prev) => [rec, ...prev])}
+            />
           )}
           {view === "digital" && <Digital txs={digitalTxs} setTxs={setDigitalTxs} push={push} />}
+          {view === "sales" && <Sales sales={sales} push={push} />}
           {view === "inventory" && <Inventory products={products} setProducts={setProducts} push={push} />}
           {view === "purchasing" && (
             <Purchasing
@@ -189,6 +207,18 @@ export default function App() {
           )}
           {view === "orders" && <Orders push={push} />}
           {view === "finance" && <Finance push={push} />}
+          {view === "reports" && (
+            <Reports
+              products={products}
+              sales={sales}
+              purchaseOrders={purchaseOrders}
+              suppliers={suppliers}
+              receivables={receivables}
+              payables={payables}
+              digitalTxs={digitalTxs}
+              push={push}
+            />
+          )}
           {view === "bookkeeping" && (
             <Bookkeeping
               ledger={ledger}
