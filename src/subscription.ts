@@ -1,6 +1,6 @@
 /* ============ Langganan & Modul Layanan SKMNet ============ */
 
-export type ModuleId = "rtrw" | "cctv";
+export type ModuleId = "rtrw" | "cctv" | "wagateway" | "sosmed";
 
 export type ModuleDef = {
   id: ModuleId;
@@ -43,11 +43,41 @@ export const MODULES_CATALOG: ModuleDef[] = [
       "Enkripsi penyimpanan AES-256",
     ],
   },
+  {
+    id: "wagateway",
+    name: "WhatsApp Gateway",
+    tagline: "Kirim pesan resmi ke pelanggan",
+    desc: "Broadcast promo, pengingat tagihan otomatis, auto-reply di luar jam operasional, dan API webhook untuk notifikasi transaksi.",
+    price: 129_000,
+    color: "#1f8f5f",
+    features: [
+      "Broadcast ke seluruh pelanggan",
+      "Pengingat tagihan & pesanan otomatis",
+      "Auto-reply di luar jam kerja",
+      "API webhook & nomor multi-perangkat",
+    ],
+  },
+  {
+    id: "sosmed",
+    name: "Social Media Autoposting",
+    tagline: "Promosi jalan terus tanpa repot",
+    desc: "Jadwalkan konten, autopost katalog & promo stok ke Instagram, Facebook, TikTok, dan X dari satu dasbor tenant.",
+    price: 89_000,
+    color: "#e1306c",
+    features: [
+      "Autopost katalog produk harian",
+      "Generator caption & hashtag",
+      "Jadwal terbit multi-platform",
+      "Estimasi jangkauan audiens",
+    ],
+  },
 ];
 
 export const MODULES_SEED: ModuleState[] = [
   { id: "rtrw", active: true, activatedAt: "12 Jan 2026" },
   { id: "cctv", active: false, activatedAt: null },
+  { id: "wagateway", active: false, activatedAt: null },
+  { id: "sosmed", active: false, activatedAt: null },
 ];
 
 /* ---------- invoice langganan ---------- */
