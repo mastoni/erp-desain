@@ -64,6 +64,9 @@ export function Dashboard({
   cameras,
   cctvPlanId,
   cctvEvents,
+  waMsgs,
+  posts,
+  autoSlot,
 }: {
   products: Product[];
   digitalTxs: DigitalTx[];

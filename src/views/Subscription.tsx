@@ -18,12 +18,20 @@ import type { Plan, Tenant } from "../superadmin";
 import { cx, idr, idrShort, num } from "../lib/format";
 import { Badge, Modal, ModalHead, Reveal, SectionHead } from "../components/ui";
 import type { Toast } from "../components/ui";
-import { IconCctv, IconCheck, IconPlus, IconReceipt, IconRouter, IconWallet, IconZap } from "../components/icons";
+import { IconCctv, IconCheck, IconMegaphone, IconPlus, IconReceipt, IconRouter, IconWallet, IconWhatsapp, IconZap } from "../components/icons";
 
 type Push = (msg: string, tone?: Toast["tone"]) => void;
 
 const moduleIcon = (id: ModuleId, s = 18) =>
-  id === "rtrw" ? <IconRouter width={s} height={s} /> : <IconCctv width={s} height={s} />;
+  id === "rtrw" ? (
+    <IconRouter width={s} height={s} />
+  ) : id === "cctv" ? (
+    <IconCctv width={s} height={s} />
+  ) : id === "wagateway" ? (
+    <IconWhatsapp width={s} height={s} />
+  ) : (
+    <IconMegaphone width={s} height={s} />
+  );
 
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const seg = () => Array.from({ length: 4 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join("");
@@ -83,6 +91,8 @@ export function Subscription({
   setCctvPlanId,
   events,
   push,
+  onOpenModule,
+  onWaRemind,
 }: {
   plans: Plan[];
   tenants: Tenant[];
@@ -99,6 +109,8 @@ export function Subscription({
   setCctvPlanId: (id: string) => void;
   events: CctvEvent[];
   push: Push;
+  onOpenModule?: (id: ModuleId) => void;
+  onWaRemind?: (name: string, nominal: number) => void;
 }) {
   const [tab, setTab] = useState<"tagihan" | ModuleId>("tagihan");
   const [activating, setActivating] = useState<ModuleDef | null>(null);
@@ -145,8 +157,13 @@ export function Subscription({
           },
           ...inv,
         ]);
-        setTab(d.id);
-        push(`Modul ${d.name} aktif — widget ditambahkan ke dasbor.`, "success");
+        if (d.id === "wagateway" || d.id === "sosmed") {
+          onOpenModule?.(d.id);
+          push(`Modul ${d.name} aktif — dasbor ${d.name} siap digunakan.`, "success");
+        } else {
+          setTab(d.id);
+          push(`Modul ${d.name} aktif — widget ditambahkan ke dasbor.`, "success");
+        }
         setActivating(null);
       }, 900);
     }, 1100);
@@ -511,7 +528,7 @@ export function Subscription({
                                 </button>
                               )}
                               {c.status === "aktif" && (
-                                <button onClick={() => push(`Pengingat tagihan ${c.name} dikirim via WhatsApp.`, "info")} className="btn-outline px-2.5 py-1.5 text-[11.5px]">
+                                <button onClick={() => onWaRemind?.(c.name, pkgOf(c.packageId).price)} className="btn-outline px-2.5 py-1.5 text-[11.5px]">
                                   Kirim Tagihan
                                 </button>
                               )}

@@ -166,6 +166,15 @@ export const IconBarcode = (p: P) => (
 export const IconRouter = (p: P) => (
   <svg {...base(p)}><rect x="2.5" y="12.5" width="19" height="6.5" rx="2" /><path d="M6 16h.01" /><path d="M9 16h4" /><path d="M7.5 9.5a6.5 6.5 0 0 1 9 0" /><path d="M9.8 12a3 3 0 0 1 4.4 0" /><path d="M12 5.5h.01" /></svg>
 );
+export const IconRefresh = (p: P) => (
+  <svg {...base(p)}><path d="M20 12a8 8 0 1 1-2.34-5.66" /><path d="M20 4v4.5h-4.5" /></svg>
+);
+export const IconWhatsapp = (p: P) => (
+  <svg {...base(p)}><path d="M12 3.5a8.5 8.5 0 0 0-7.3 12.9L3.5 20.5l4.3-1.2A8.5 8.5 0 1 0 12 3.5z" /><path d="M9 9.2c0 3.2 2.6 5.8 5.8 5.8" /><circle cx="9" cy="9.2" r="0.6" fill="currentColor" /><circle cx="14.8" cy="15" r="0.6" fill="currentColor" /></svg>
+);
+export const IconMegaphone = (p: P) => (
+  <svg {...base(p)}><path d="M3 10.5v3.4a1.6 1.6 0 0 0 1.6 1.6h2.1l3.9 3.4c.7.6 1.9.1 1.9-.9V6.4c0-1-1.2-1.5-1.9-.9L6.7 8.9H4.6A1.6 1.6 0 0 0 3 10.5z" /><path d="M16 9.5a3 3 0 0 1 0 5.4" /><path d="M18.5 7.5a6 6 0 0 1 0 9.4" /></svg>
+);
 export const IconCctv = (p: P) => (
   <svg {...base(p)}><path d="m3 7 13.5-3.6a1 1 0 0 1 1.2.7l1 3.7a1 1 0 0 1-.7 1.2L7.5 12" /><path d="m7.5 12-1.6 2.8" /><path d="M4 17.5h4.5" /><path d="M6.2 14.8v2.7" /><path d="M14.5 11.5 15 13.4a1 1 0 0 1-.7 1.2L11 15.5" /><path d="M18.5 5.5 21 8" /></svg>
 );

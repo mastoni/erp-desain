@@ -8,6 +8,7 @@ import {
   IconGrid,
   IconKey,
   IconLogout,
+  IconMegaphone,
   IconReceipt,
   IconShieldPlus,
   IconSliders,
@@ -17,6 +18,7 @@ import {
   IconTruck,
   IconUsers,
   IconWallet,
+  IconWhatsapp,
   IconX,
   IconZap,
 } from "./icons";
@@ -36,6 +38,8 @@ export type View =
   | "reports"
   | "customers"
   | "langganan"
+  | "wagateway"
+  | "sosmed"
   | "settings"
   | "superadmin"
   | "android";
@@ -46,6 +50,7 @@ type NavItem = {
   icon: (p: { width?: number; height?: number }) => React.ReactNode;
   badge?: number;
   badgeTone?: "honey" | "plain";
+  requires?: string;
 };
 
 function BarnMark() {
@@ -70,6 +75,7 @@ export function Sidebar({
   digitalCount,
   poOpenCount,
   dueBills,
+  activeModules,
   onLogout,
 }: {
   view: View;
@@ -81,6 +87,7 @@ export function Sidebar({
   digitalCount: number;
   poOpenCount: number;
   dueBills: number;
+  activeModules: string[];
   onLogout: () => void;
 }) {
   const groups: { title: string; items: NavItem[] }[] = [
@@ -97,6 +104,13 @@ export function Sidebar({
       items: [
         { id: "sales", label: "Penjualan", icon: (p) => <IconTrendUp {...p} /> },
         { id: "orders", label: "Pesanan", icon: (p) => <IconReceipt {...p} />, badge: pendingOrders, badgeTone: "plain" },
+      ],
+    },
+    {
+      title: "Pesan & Promosi",
+      items: [
+        { id: "wagateway", label: "WhatsApp Gateway", icon: (p) => <IconWhatsapp {...p} />, requires: "wagateway" },
+        { id: "sosmed", label: "Autoposting Sosmed", icon: (p) => <IconMegaphone {...p} />, requires: "sosmed" },
       ],
     },
     {
@@ -194,6 +208,17 @@ export function Sidebar({
                       >
                         {it.badge}
                       </span>
+                    )}
+                    {it.requires && !activeModules.includes(it.requires) && (
+                      <span
+                        className="ml-auto flex items-center gap-1 rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/40"
+                        title="Modul belum aktif — aktifkan di menu Langganan"
+                      >
+                        <span className="h-1 w-1 rounded-full bg-clay" /> off
+                      </span>
+                    )}
+                    {it.requires && activeModules.includes(it.requires) && (
+                      <span className="pulse-dot ml-auto h-1.5 w-1.5 rounded-full bg-[#5ec98f]" title="Modul aktif" />
                     )}
                   </button>
                 </li>

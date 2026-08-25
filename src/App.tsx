@@ -21,6 +21,7 @@ import {
 } from "./data";
 import { Sidebar, type View } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
+import { idrShort } from "./lib/format";
 import { ToastStack, type Toast } from "./components/ui";
 import { Dashboard } from "./views/Dashboard";
 import { POS } from "./views/POS";
@@ -41,6 +42,8 @@ import { MobileApp } from "./views/MobileApp";
 import { Helpdesk } from "./support/Helpdesk";
 import type { OcCtx } from "./support/openclaw";
 import { Subscription } from "./views/Subscription";
+import { WAGateway } from "./views/WAGateway";
+import { SocialMedia } from "./views/SocialMedia";
 import {
   CAMERAS_SEED,
   CCTV_EVENTS_SEED,
@@ -55,6 +58,18 @@ import {
   type RtrwCustomer,
   type Voucher,
 } from "./subscription";
+import {
+  AUTOPOST_DEFAULT,
+  POSTS_SEED,
+  SOCIAL_ACCOUNTS_SEED,
+  WA_CHANNELS_SEED,
+  WA_MSGS_SEED,
+  type AutoPostCfg,
+  type ScheduledPost,
+  type SocialAccount,
+  type WaChannel,
+  type WaMsg,
+} from "./promosi";
 import {
   AUDIT_SEED,
   DIGITAL_SERVICES,
@@ -92,6 +107,8 @@ const META: Record<View, { crumb: string; title: string }> = {
   customers: { crumb: "Pelanggan", title: "Pelanggan & Member" },
   settings: { crumb: "Pengaturan", title: "Pengaturan Toko & Perangkat" },
   langganan: { crumb: "Langganan", title: "Langganan & Modul Layanan" },
+  wagateway: { crumb: "Pesan & Promosi", title: "WhatsApp Gateway" },
+  sosmed: { crumb: "Pesan & Promosi", title: "Autoposting Sosial Media" },
   superadmin: { crumb: "Platform", title: "Konsol Super Admin" },
   android: { crumb: "Platform", title: "Aplikasi Android Tenant" },
 };
@@ -116,6 +133,20 @@ export default function App() {
   const [cameras, setCameras] = useState<Camera[]>(CAMERAS_SEED);
   const [cctvPlanId, setCctvPlanId] = useState("s2");
   const [cctvEvents] = useState<CctvEvent[]>(CCTV_EVENTS_SEED);
+
+  // ---- pesan & promosi ----
+  const [waChannels, setWaChannels] = useState<WaChannel[]>(WA_CHANNELS_SEED);
+  const [waMsgs, setWaMsgs] = useState<WaMsg[]>(WA_MSGS_SEED);
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>(SOCIAL_ACCOUNTS_SEED);
+  const [posts, setPosts] = useState<ScheduledPost[]>(POSTS_SEED);
+  const [autoCfg, setAutoCfg] = useState<AutoPostCfg>(AUTOPOST_DEFAULT);
+
+  const waActive = modules.some((m) => m.id === "wagateway" && m.active);
+  const sosmedActive = modules.some((m) => m.id === "sosmed" && m.active);
+  const activeModules = useMemo(() => modules.filter((m) => m.active).map((m) => m.id), [modules]);
+
+  const waTimers = useRef<number[]>([]);
+  useEffect(() => () => waTimers.current.forEach((t) => window.clearTimeout(t)), []);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [posQuery, setPosQuery] = useState("");
@@ -198,6 +229,31 @@ export default function App() {
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3600);
   }, []);
 
+  /** Kirim satu pesan lewat WhatsApp Gateway tenant (dipakai lintas modul). */
+  const sendWa = useCallback(
+    (to: string, content: string, kind: WaMsg["kind"]): boolean => {
+      if (!waActive) {
+        push("Modul WhatsApp Gateway belum aktif — aktifkan di menu Langganan.", "warn");
+        return false;
+      }
+      const id = `wm-${Date.now()}-${Math.floor(Math.random() * 999)}`;
+      const msg: WaMsg = {
+        id,
+        ts: Date.now(),
+        time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+        to,
+        kind,
+        content,
+        status: "antri",
+      };
+      setWaMsgs((prev) => [msg, ...prev].slice(0, 60));
+      waTimers.current.push(window.setTimeout(() => setWaMsgs((prev) => prev.map((x) => (x.id === id ? { ...x, status: "terkirim" } : x))), 1100));
+      waTimers.current.push(window.setTimeout(() => setWaMsgs((prev) => prev.map((x) => (x.id === id ? { ...x, status: "dibaca" } : x))), 2800));
+      return true;
+    },
+    [waActive, push]
+  );
+
   const log = useCallback((action: AuditAction, entity: string, detail: string) => {
     setAuditLogs((l) => [
       {
@@ -262,6 +318,7 @@ export default function App() {
         digitalCount={digitalTxs.length}
         poOpenCount={purchaseOrders.filter((p) => p.status === "dikirim").length}
         dueBills={dueBills}
+        activeModules={activeModules}
         onLogout={() => push("Ini aplikasi demo — sesi Anda tetap aman.", "info")}
       />
 
@@ -378,6 +435,15 @@ export default function App() {
               setCctvPlanId={setCctvPlanId}
               events={cctvEvents}
               push={push}
+              onOpenModule={(id) => setView(id === "wagateway" ? "wagateway" : "sosmed")}
+              onWaRemind={(name, nominal) => {
+                const ok = sendWa(
+                  "+62 8xx-xxxx-" + String(name.length * 137).padStart(4, "0"),
+                  `Halo ${name.split(" ")[0]}, tagihan RTRW-Net Anda sebesar ${idrShort(nominal)} akan segera jatuh tempo. Mohon segera lakukan pembayaran ya. Terima kasih — SKM Mart`,
+                  "pengingat"
+                );
+                if (ok) push(`Pengingat tagihan ${name} dikirim via WhatsApp Gateway.`);
+              }}
             />
           )}
           {view === "settings" && <SettingsView config={config} onSave={(c) => setConfig(c)} push={push} />}
@@ -407,6 +473,39 @@ export default function App() {
               config={config}
               onSale={(rec) => setSales((prev) => [rec, ...prev])}
               push={push}
+            />
+          )}
+          {view === "wagateway" && (
+            <WAGateway
+              active={waActive}
+              channels={waChannels}
+              setChannels={setWaChannels}
+              msgs={waMsgs}
+              setMsgs={setWaMsgs}
+              rtrwCustomers={rtrwCustomers}
+              sendWa={sendWa}
+              push={push}
+              onGoLangganan={() => setView("langganan")}
+            />
+          )}
+          {view === "sosmed" && (
+            <SocialMedia
+              active={sosmedActive}
+              accounts={socialAccounts}
+              setAccounts={setSocialAccounts}
+              posts={posts}
+              setPosts={setPosts}
+              autoCfg={autoCfg}
+              setAutoCfg={setAutoCfg}
+              products={products}
+              storeName={config.storeName}
+              waActive={waActive}
+              onBroadcast={(caption) => {
+                const ok = sendWa("Pelanggan terpilih", `📣 ${caption.split("\n")[0]} — info lengkap di media sosial kami ya!`, "broadcast");
+                if (ok) push("Promo dibroadcast ke pelanggan via WhatsApp Gateway.");
+              }}
+              push={push}
+              onGoLangganan={() => setView("langganan")}
             />
           )}
         </main>
