@@ -351,6 +351,9 @@ export default function App() {
               cameras={cameras}
               cctvPlanId={cctvPlanId}
               cctvEvents={cctvEvents}
+              waMsgs={waMsgs}
+              posts={posts}
+              autoSlot={autoCfg.slot}
             />
           )}
           {view === "pos" && (
