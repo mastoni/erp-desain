@@ -163,6 +163,12 @@ export const IconDrawer = (p: P) => (
 export const IconBarcode = (p: P) => (
   <svg {...base(p)}><path d="M4 6v12" /><path d="M7.5 6v12" /><path d="M10 6v9" /><path d="M13 6v12" /><path d="M16.5 6v9" /><path d="M20 6v12" /></svg>
 );
+export const IconRouter = (p: P) => (
+  <svg {...base(p)}><rect x="2.5" y="12.5" width="19" height="6.5" rx="2" /><path d="M6 16h.01" /><path d="M9 16h4" /><path d="M7.5 9.5a6.5 6.5 0 0 1 9 0" /><path d="M9.8 12a3 3 0 0 1 4.4 0" /><path d="M12 5.5h.01" /></svg>
+);
+export const IconCctv = (p: P) => (
+  <svg {...base(p)}><path d="m3 7 13.5-3.6a1 1 0 0 1 1.2.7l1 3.7a1 1 0 0 1-.7 1.2L7.5 12" /><path d="m7.5 12-1.6 2.8" /><path d="M4 17.5h4.5" /><path d="M6.2 14.8v2.7" /><path d="M14.5 11.5 15 13.4a1 1 0 0 1-.7 1.2L11 15.5" /><path d="M18.5 5.5 21 8" /></svg>
+);
 export const IconDatabase = (p: P) => (
   <svg {...base(p)}><ellipse cx="12" cy="5.5" rx="7.5" ry="3" /><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13" /><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3" /></svg>
 );

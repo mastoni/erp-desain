@@ -158,7 +158,7 @@ export type Toast = { id: number; msg: string; tone: "success" | "warn" | "info"
 
 export function ToastStack({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: number) => void }) {
   return (
-    <div className="fixed bottom-5 right-5 z-[60] flex w-[320px] flex-col gap-2">
+    <div className="fixed right-4 top-[76px] z-[60] flex w-[320px] max-w-[calc(100vw-2rem)] flex-col gap-2">
       {toasts.map((t) => (
         <div
           key={t.id}

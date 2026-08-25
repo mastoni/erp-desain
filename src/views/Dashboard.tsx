@@ -5,7 +5,8 @@ import { AreaChart, Donut, HourBars, Sparkline } from "../components/charts";
 import { Badge, Delta, Reveal, SectionHead, useCountUp } from "../components/ui";
 import type { Toast } from "../components/ui";
 import type { View } from "../components/Sidebar";
-import { IconArrowUpRight, IconBox, IconCheck, IconChevronRight, IconDownload, IconReceipt, IconTrendUp, IconZap } from "../components/icons";
+import { IconArrowUpRight, IconBox, IconCctv, IconCheck, IconChevronRight, IconDownload, IconReceipt, IconRouter, IconTrendUp, IconZap } from "../components/icons";
+import { CCTV_PLANS, RTRW_PACKAGES, type Camera, type CctvEvent, type ModuleState, type RtrwCustomer, type Voucher } from "../subscription";
 
 const D_CAT_LABEL: Record<string, string> = {
   pulsa: "Pulsa", data: "Data", ewallet: "E-Wallet", listrik: "Listrik",
@@ -57,6 +58,12 @@ export function Dashboard({
   sales,
   onNavigate,
   push,
+  modules,
+  rtrwCustomers,
+  vouchers,
+  cameras,
+  cctvPlanId,
+  cctvEvents,
 }: {
   products: Product[];
   digitalTxs: DigitalTx[];
@@ -64,6 +71,12 @@ export function Dashboard({
   sales: SalesRecord[];
   onNavigate: (v: View) => void;
   push: Push;
+  modules: ModuleState[];
+  rtrwCustomers: RtrwCustomer[];
+  vouchers: Voucher[];
+  cameras: Camera[];
+  cctvPlanId: string;
+  cctvEvents: CctvEvent[];
 }) {
   const [range, setRange] = useState<"7" | "30">("7");
 
@@ -75,6 +88,18 @@ export function Dashboard({
   )
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3);
+
+  /* ringkasan modul langganan (muncul bila aktif) */
+  const rtrwOn = modules.find((m) => m.id === "rtrw")?.active ?? false;
+  const cctvOn = modules.find((m) => m.id === "cctv")?.active ?? false;
+  const pkgPrice = (id: string) => RTRW_PACKAGES.find((p) => p.id === id)?.price ?? 0;
+  const rtrwAktif = rtrwCustomers.filter((c) => c.status === "aktif");
+  const rtrwMrr = rtrwAktif.reduce((s, c) => s + pkgPrice(c.packageId), 0);
+  const rtrwNunggak = rtrwCustomers.filter((c) => c.status === "menunggak");
+  const rtrwTunggakan = rtrwNunggak.reduce((s, c) => s + pkgPrice(c.packageId), 0);
+  const camOnline = cameras.filter((c) => c.online).length;
+  const cctvUsed = cameras.reduce((s, c) => s + c.usedGb, 0);
+  const cctvCap = CCTV_PLANS.find((p) => p.id === cctvPlanId)?.capacityGb ?? 240;
 
   const series = range === "7" ? SALES_7 : SALES_30;
   const total = series.reduce((s, d) => s + d.value, 0);
@@ -98,6 +123,8 @@ export function Dashboard({
     `Stok menipis: ${lowStock.length} SKU`,
     `${pending} pesanan menunggu diproses`,
     dueBills > 0 ? `${dueBills} tagihan hutang jatuh tempo` : "Semua hutang usaha terkendali",
+    ...(rtrwOn ? [`RTRW-Net: ${idrShort(rtrwMrr)} / bulan · ${rtrwNunggak.length} menunggak`] : []),
+    ...(cctvOn ? [`CCTV Cloud: ${camOnline}/${cameras.length} kamera online · ${cctvUsed} GB terpakai`] : []),
     "Kasir aktif: Rani · Dimas",
     "Settlement QRIS pukul 23:00 WIB",
     "Backup otomatis berikutnya 02:00 WIB",
@@ -107,7 +134,7 @@ export function Dashboard({
     <div>
       <SectionHead
         title="Dasbor Operasional"
-        desc={`${dateStr} · Ringkasan performa Lumbung Mart hari ini.`}
+        desc={`${dateStr} · Ringkasan performa ${"SKM Mart"} hari ini.`}
         action={
           <div className="flex items-center gap-2">
             <div className="flex rounded-lg border border-line bg-surface p-0.5">
@@ -225,6 +252,116 @@ export function Dashboard({
           </div>
         </div>
       </Reveal>
+
+      {/* widget modul langganan — tampil bila modul aktif */}
+      {(rtrwOn || cctvOn) && (
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          {rtrwOn && (
+            <Reveal>
+              <section className="card card-hover relative h-full overflow-hidden p-5">
+                <span className="absolute inset-y-0 left-0 w-1 bg-[#35657f]" />
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-tide-soft text-tide">
+                    <IconRouter width={19} height={19} />
+                    <span className="pulse-dot absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#35657f]" />
+                  </span>
+                  <div>
+                    <p className="font-display text-[15px] font-bold leading-tight">Billing RTRW-Net</p>
+                    <p className="text-[11.5px] text-fog">Modul langganan · internet lingkungan</p>
+                  </div>
+                  <Badge tone="tide" className="ml-auto">Aktif</Badge>
+                  <button onClick={() => onNavigate("langganan")} className="btn-outline px-3 py-1.5 text-[11.5px]">
+                    Kelola <IconChevronRight width={12} height={12} />
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {[
+                    { l: "Pelanggan Aktif", v: num(rtrwAktif.length), c: "text-ink" },
+                    { l: "Pendapatan / Bln", v: idrShort(rtrwMrr), c: "text-[#35657f]" },
+                    { l: "Tunggakan", v: idrShort(rtrwTunggakan), c: "text-clay" },
+                  ].map((k) => (
+                    <div key={k.l} className="rounded-lg bg-paper/60 px-3 py-2.5">
+                      <p className={cx("num text-[17px] font-bold leading-tight", k.c)}>{k.v}</p>
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-fog">{k.l}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-2">
+                  <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-fog">Perlu ditagih</p>
+                  <p className="num text-[10.5px] text-fog">{vouchers.filter((v) => v.status === "tersedia").length} voucher siap jual</p>
+                </div>
+                <ul className="mt-2 space-y-1.5">
+                  {rtrwNunggak.slice(0, 2).map((c) => (
+                    <li key={c.id} className="row-in flex items-center gap-2.5 rounded-lg border border-line/70 bg-white px-3 py-2">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-honey" />
+                      <span className="min-w-0 flex-1 truncate text-[12.5px] font-semibold">{c.name}</span>
+                      <span className="num text-[11px] text-fog">jatuh tempo {c.due}</span>
+                      <span className="num text-[12px] font-bold text-clay">{idrShort(pkgPrice(c.packageId))}</span>
+                      <button
+                        onClick={() => push(`Pengingat tagihan ${c.name} dikirim via WhatsApp.`, "info")}
+                        className="btn-outline px-2 py-1 text-[10.5px]"
+                      >
+                        Ingatkan
+                      </button>
+                    </li>
+                  ))}
+                  {rtrwNunggak.length === 0 && (
+                    <li className="rounded-lg bg-pine-soft/60 px-3 py-2 text-[12px] font-semibold text-pine">Semua pelanggan lancar — tidak ada tunggakan.</li>
+                  )}
+                </ul>
+              </section>
+            </Reveal>
+          )}
+          {cctvOn && (
+            <Reveal delay={80}>
+              <section className="card card-hover relative h-full overflow-hidden p-5">
+                <span className="absolute inset-y-0 left-0 w-1 bg-[#bc4b2f]" />
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-clay-soft text-clay">
+                    <IconCctv width={19} height={19} />
+                    <span className="pulse-dot absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-clay" />
+                  </span>
+                  <div>
+                    <p className="font-display text-[15px] font-bold leading-tight">CCTV Cloud Storage</p>
+                    <p className="text-[11.5px] text-fog">Modul langganan · rekaman aman di cloud</p>
+                  </div>
+                  <Badge tone="clay" className="ml-auto">
+                    <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-clay" /> {camOnline} REC
+                  </Badge>
+                  <button onClick={() => onNavigate("langganan")} className="btn-outline px-3 py-1.5 text-[11.5px]">
+                    Kelola <IconChevronRight width={12} height={12} />
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="rounded-lg bg-paper/60 px-3 py-2.5">
+                    <p className="num text-[17px] font-bold leading-tight">{camOnline}/{cameras.length}</p>
+                    <p className="text-[9.5px] font-bold uppercase tracking-wider text-fog">Kamera Online</p>
+                  </div>
+                  <div className="col-span-2 rounded-lg bg-paper/60 px-3 py-2.5">
+                    <div className="flex items-baseline justify-between">
+                      <p className="num text-[15px] font-bold leading-tight">{cctvUsed} GB</p>
+                      <p className="num text-[10px] text-fog">dari {cctvCap} GB</p>
+                    </div>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink/8">
+                      <div className="bar-fill h-full rounded-full bg-[#bc4b2f]" style={{ width: `${Math.min(100, (cctvUsed / cctvCap) * 100)}%` }} />
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-4 text-[10.5px] font-bold uppercase tracking-[0.12em] text-fog">Kejadian terbaru</p>
+                <ul className="mt-2 space-y-1.5">
+                  {cctvEvents.slice(0, 2).map((e, i) => (
+                    <li key={i} className="row-in flex items-center gap-2.5 rounded-lg border border-line/70 bg-white px-3 py-2">
+                      <span className={cx("h-1.5 w-1.5 shrink-0 rounded-full", e.tone === "warn" ? "bg-honey" : e.tone === "ok" ? "bg-pine" : "bg-tide")} />
+                      <span className="min-w-0 flex-1 truncate text-[12.5px] font-semibold">{e.type}</span>
+                      <span className="num text-[10.5px] text-fog">{e.cam} · {e.time}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </Reveal>
+          )}
+        </div>
+      )}
 
       {/* baris bawah */}
       <div className="mt-5 grid grid-cols-12 gap-4">

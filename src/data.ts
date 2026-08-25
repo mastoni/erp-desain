@@ -307,7 +307,7 @@ export type StoreConfig = {
 export type Settings = StoreConfig;
 
 export const DEFAULT_CONFIG: StoreConfig = {
-  storeName: "Lumbung Mart",
+  storeName: "SKM Mart",
   address: "Jl. Melati No. 12, Yogyakarta",
   phone: "0274-556-810",
   taxRate: 11,

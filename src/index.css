@@ -195,6 +195,18 @@ body {
 }
 .caret { animation: blink-caret 1s steps(1) infinite; }
 
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+.pop-in { animation: pop-in 0.3s cubic-bezier(0.22, 0.8, 0.3, 1) both; transform-origin: bottom right; }
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+.typing-dot { animation: typing-bounce 1.1s infinite; }
+
 @keyframes dash-flow {
   to { stroke-dashoffset: -16; }
 }

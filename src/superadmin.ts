@@ -65,8 +65,8 @@ export type Tenant = {
 
 export const TENANTS: Tenant[] = [
   {
-    id: "T-001", name: "Lumbung Mart", subdomain: "lumbung-mart", planId: "pro", status: "aktif", region: "Yogyakarta",
-    owner: "Rani Wijaya", email: "rani@lumbungmart.id", users: 4, products: 26, salesToday: 8_450_000,
+    id: "T-001", name: "SKM Mart", subdomain: "skm-mart", planId: "pro", status: "aktif", region: "Yogyakarta",
+    owner: "Rani Wijaya", email: "rani@skmmart.id", users: 4, products: 26, salesToday: 8_450_000,
     storageMb: 184, storageLimitMb: 5_120, createdAt: "12 Jan 2025", spark: [4.1, 4.6, 4.4, 5.2, 5.8, 6.9, 8.45], current: true,
   },
   {
@@ -114,10 +114,10 @@ export type TenantUser = {
 };
 
 export const SA_USERS: TenantUser[] = [
-  { id: "U-01", tenantId: null, name: "Aditya Pradana", email: "aditya@lumbung.cloud", role: "super_admin", active: true, lastLogin: "Baru saja" },
-  { id: "U-02", tenantId: "T-001", name: "Rani Wijaya", email: "rani@lumbungmart.id", role: "owner", active: true, lastLogin: "5 mnt lalu" },
-  { id: "U-03", tenantId: "T-001", name: "Dimas Saputra", email: "dimas@lumbungmart.id", role: "kasir", active: true, lastLogin: "2 jam lalu" },
-  { id: "U-04", tenantId: "T-001", name: "Sri Handayani", email: "sri@lumbungmart.id", role: "kasir", active: false, lastLogin: "3 hari lalu" },
+  { id: "U-01", tenantId: null, name: "Aditya Pradana", email: "aditya@skmnet.cloud", role: "super_admin", active: true, lastLogin: "Baru saja" },
+  { id: "U-02", tenantId: "T-001", name: "Rani Wijaya", email: "rani@skmmart.id", role: "owner", active: true, lastLogin: "5 mnt lalu" },
+  { id: "U-03", tenantId: "T-001", name: "Dimas Saputra", email: "dimas@skmmart.id", role: "kasir", active: true, lastLogin: "2 jam lalu" },
+  { id: "U-04", tenantId: "T-001", name: "Sri Handayani", email: "sri@skmmart.id", role: "kasir", active: false, lastLogin: "3 hari lalu" },
   { id: "U-05", tenantId: "T-002", name: "Made Wirata", email: "made@baliminimart.id", role: "owner", active: true, lastLogin: "1 jam lalu" },
   { id: "U-06", tenantId: "T-002", name: "Komang Ayu", email: "komang@baliminimart.id", role: "manajer", active: true, lastLogin: "4 jam lalu" },
   { id: "U-07", tenantId: "T-003", name: "Hendra Gunawan", email: "hendra@tokosinar.id", role: "owner", active: true, lastLogin: "30 mnt lalu" },
@@ -141,13 +141,13 @@ export type AuditLog = {
 export const AUDIT_SEED: AuditLog[] = [
   { id: "LOG-901", time: "09:47", actor: "Aditya Pradana", action: "AKTIVASI", entity: "tenants", detail: "Mengaktifkan ulang tenant T-004 Warung Berkah", ip: "103.10.64.21" },
   { id: "LOG-900", time: "09:31", actor: "Aditya Pradana", action: "SUSPEND", entity: "tenants", detail: "Menangguhkan T-005 Swalayan Anggrek — tagihan gagal 3×", ip: "103.10.64.21" },
-  { id: "LOG-899", time: "09:12", actor: "Rani Wijaya", action: "LOGIN", entity: "auth", detail: "Masuk dari lumbung-mart.lumbung.cloud (Yogyakarta)", ip: "182.2.114.87" },
-  { id: "LOG-898", time: "08:58", actor: "Aditya Pradana", action: "CREATE", entity: "users", detail: "Menambah kasir U-003 dim as@lumbungmart.id pada T-001", ip: "103.10.64.21" },
+  { id: "LOG-899", time: "09:12", actor: "Rani Wijaya", action: "LOGIN", entity: "auth", detail: "Masuk dari skm-mart.skmnet.cloud (Yogyakarta)", ip: "182.2.114.87" },
+  { id: "LOG-898", time: "08:58", actor: "Aditya Pradana", action: "CREATE", entity: "users", detail: "Menambah kasir U-003 dimas@skmmart.id pada T-001", ip: "103.10.64.21" },
   { id: "LOG-897", time: "08:40", actor: "Sistem", action: "UPDATE", entity: "billing", detail: "Invoice INV-2291 Pro diterbitkan untuk T-002 (Rp 249.000)", ip: "—" },
   { id: "LOG-896", time: "08:26", actor: "Aditya Pradana", action: "CREATE", entity: "tenants", detail: "Tenant baru T-007 Toko Barokah (trial 14 hari, Starter)", ip: "103.10.64.21" },
   { id: "LOG-895", time: "08:02", actor: "Sistem", action: "UPDATE", entity: "backup", detail: "Backup harian 7 tenant selesai — 412 MB ke S3 (ap-southeast-1)", ip: "—" },
   { id: "LOG-894", time: "07:44", actor: "Aditya Pradana", action: "UPDATE", entity: "plans", detail: "Menyesuaikan kuota produk paket Pro: 4.000 → 5.000 SKU", ip: "103.10.64.21" },
-  { id: "LOG-893", time: "07:15", actor: "Made Wirata", action: "LOGIN", entity: "auth", detail: "Masuk dari bali-minimart.lumbung.cloud (Denpasar)", ip: "36.72.91.15" },
+  { id: "LOG-893", time: "07:15", actor: "Made Wirata", action: "LOGIN", entity: "auth", detail: "Masuk dari bali-minimart.skmnet.cloud (Denpasar)", ip: "36.72.91.15" },
   { id: "LOG-892", time: "06:58", actor: "Sistem", action: "DELETE", entity: "sessions", detail: "Membersihkan 42 sesi kadaluarsa (rotasi token)", ip: "—" },
 ];
 
