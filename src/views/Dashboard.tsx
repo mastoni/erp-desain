@@ -5,8 +5,9 @@ import { AreaChart, Donut, HourBars, Sparkline } from "../components/charts";
 import { Badge, Delta, Reveal, SectionHead, useCountUp } from "../components/ui";
 import type { Toast } from "../components/ui";
 import type { View } from "../components/Sidebar";
-import { IconArrowUpRight, IconBox, IconCctv, IconCheck, IconChevronRight, IconDownload, IconReceipt, IconRouter, IconTrendUp, IconZap } from "../components/icons";
+import { IconArrowUpRight, IconBox, IconCctv, IconCheck, IconChevronRight, IconDownload, IconMegaphone, IconReceipt, IconRouter, IconTrendUp, IconWhatsapp, IconZap } from "../components/icons";
 import { CCTV_PLANS, RTRW_PACKAGES, type Camera, type CctvEvent, type ModuleState, type RtrwCustomer, type Voucher } from "../subscription";
+import type { ScheduledPost, WaMsg } from "../promosi";
 
 const D_CAT_LABEL: Record<string, string> = {
   pulsa: "Pulsa", data: "Data", ewallet: "E-Wallet", listrik: "Listrik",
@@ -80,6 +81,9 @@ export function Dashboard({
   cameras: Camera[];
   cctvPlanId: string;
   cctvEvents: CctvEvent[];
+  waMsgs: WaMsg[];
+  posts: ScheduledPost[];
+  autoSlot: string;
 }) {
   const [range, setRange] = useState<"7" | "30">("7");
 
@@ -104,6 +108,16 @@ export function Dashboard({
   const cctvUsed = cameras.reduce((s, c) => s + c.usedGb, 0);
   const cctvCap = CCTV_PLANS.find((p) => p.id === cctvPlanId)?.capacityGb ?? 240;
 
+  /* ringkasan pesan & promosi (muncul bila modul aktif) */
+  const waOn = modules.find((m) => m.id === "wagateway")?.active ?? false;
+  const sosOn = modules.find((m) => m.id === "sosmed")?.active ?? false;
+  const waQueued = waMsgs.filter((x) => x.status === "antri" || x.status === "terkirim").length;
+  const waSent = waMsgs.filter((x) => x.status !== "antri");
+  const waReadRate = waSent.length ? Math.round((waMsgs.filter((x) => x.status === "dibaca").length / waSent.length) * 100) : 0;
+  const waLast = [...waMsgs].sort((a, b) => b.ts - a.ts)[0];
+  const schedCount = posts.filter((p) => p.status === "terjadwal").length;
+  const reachTotal = posts.filter((p) => p.status === "terbit").reduce((s, p) => s + p.reach, 0);
+
   const series = range === "7" ? SALES_7 : SALES_30;
   const total = series.reduce((s, d) => s + d.value, 0);
   const best = series.reduce((a, b) => (b.value > a.value ? b : a));
@@ -127,6 +141,8 @@ export function Dashboard({
     `${pending} pesanan menunggu diproses`,
     dueBills > 0 ? `${dueBills} tagihan hutang jatuh tempo` : "Semua hutang usaha terkendali",
     ...(rtrwOn ? [`RTRW-Net: ${idrShort(rtrwMrr)} / bulan · ${rtrwNunggak.length} menunggak`] : []),
+    ...(waOn ? [`Antrean WA Gateway: ${waQueued} pesan · terbaca ${waReadRate}%`] : []),
+    ...(sosOn ? [`Autopost sosmed berikutnya pukul ${autoSlot} · ${schedCount} terjadwal`] : []),
     ...(cctvOn ? [`CCTV Cloud: ${camOnline}/${cameras.length} kamera online · ${cctvUsed} GB terpakai`] : []),
     "Kasir aktif: Rani · Dimas",
     "Settlement QRIS pukul 23:00 WIB",
@@ -360,6 +376,93 @@ export function Dashboard({
                     </li>
                   ))}
                 </ul>
+              </section>
+            </Reveal>
+          )}
+        </div>
+      )}
+
+      {/* pesan & promosi — tampil bila modul aktif */}
+      {(waOn || sosOn) && (
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          {waOn && (
+            <Reveal>
+              <section className="card card-hover relative h-full overflow-hidden p-5">
+                <span className="absolute inset-y-0 left-0 w-1 bg-[#1f8f5f]" />
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[#1f8f5f]/12 text-[#1f8f5f]">
+                    <IconWhatsapp width={19} height={19} />
+                    <span className="pulse-dot absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#1f8f5f]" />
+                  </span>
+                  <div>
+                    <p className="font-display text-[15px] font-bold leading-tight">WhatsApp Gateway</p>
+                    <p className="text-[11.5px] text-fog">Broadcast · pengingat · auto-reply</p>
+                  </div>
+                  <button onClick={() => onNavigate("wagateway")} className="btn-outline ml-auto px-3 py-1.5 text-[11.5px]">
+                    Kelola <IconChevronRight width={12} height={12} />
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {[
+                    { l: "Antrean", v: num(waQueued), c: "text-ink" },
+                    { l: "Tingkat Dibaca", v: `${waReadRate}%`, c: "text-[#1f8f5f]" },
+                    { l: "Terkirim", v: num(waSent.length), c: "text-tide" },
+                  ].map((k) => (
+                    <div key={k.l} className="rounded-lg bg-paper/60 px-3 py-2.5">
+                      <p className={cx("num text-[17px] font-bold leading-tight", k.c)}>{k.v}</p>
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-fog">{k.l}</p>
+                    </div>
+                  ))}
+                </div>
+                {waLast && (
+                  <div className="row-in mt-4 flex items-center gap-2.5 rounded-lg border border-line/70 bg-white px-3 py-2.5">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#1f8f5f]" />
+                    <p className="min-w-0 flex-1 truncate text-[12px] text-ink/80">{waLast.content}</p>
+                    <span className="num shrink-0 text-[10.5px] text-fog">{waLast.time}</span>
+                  </div>
+                )}
+              </section>
+            </Reveal>
+          )}
+          {sosOn && (
+            <Reveal delay={80}>
+              <section className="card card-hover relative h-full overflow-hidden p-5">
+                <span className="absolute inset-y-0 left-0 w-1 bg-[#e1306c]" />
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[#e1306c]/12 text-[#e1306c]">
+                    <IconMegaphone width={19} height={19} />
+                    <span className="pulse-dot absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#e1306c]" />
+                  </span>
+                  <div>
+                    <p className="font-display text-[15px] font-bold leading-tight">Autoposting Sosmed</p>
+                    <p className="text-[11.5px] text-fog">Promosi multi-platform terjadwal</p>
+                  </div>
+                  <button onClick={() => onNavigate("sosmed")} className="btn-outline ml-auto px-3 py-1.5 text-[11.5px]">
+                    Kelola <IconChevronRight width={12} height={12} />
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {[
+                    { l: "Terjadwal", v: num(schedCount), c: "text-tide" },
+                    { l: "Jangkauan", v: num(reachTotal), c: "text-[#e1306c]" },
+                    { l: "Slot Berikutnya", v: autoSlot, c: "text-[#8a5f10]" },
+                  ].map((k) => (
+                    <div key={k.l} className="rounded-lg bg-paper/60 px-3 py-2.5">
+                      <p className={cx("num text-[17px] font-bold leading-tight", k.c)}>{k.v}</p>
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-fog">{k.l}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {posts.filter((p) => p.status === "terjadwal").slice(0, 2).map((p) => (
+                    <span key={p.id} className="row-in max-w-full truncate rounded-md border border-line bg-white px-2.5 py-1.5 text-[11px] font-semibold text-fog">
+                      {p.date} {p.time} — {p.caption}
+                    </span>
+                  ))}
+                  {schedCount === 0 && (
+                    <span className="rounded-md bg-paper px-2.5 py-1.5 text-[11px] font-semibold text-fog">Tidak ada postingan terjadwal.</span>
+                  )}
+                </div>
               </section>
             </Reveal>
           )}
