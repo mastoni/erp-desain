@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { cx } from "../lib/format";
 import { NOTIFICATIONS } from "../data";
-import { IconBell, IconCheck, IconChevronDown, IconLogout, IconMenu, IconSearch, IconSliders, IconUsers } from "./icons";
+import { IconBell, IconCheck, IconChevronDown, IconLogout, IconMenu, IconSearch, IconShieldPlus, IconSliders, IconUsers } from "./icons";
 
 function LiveClock() {
   const [now, setNow] = useState(() => new Date());
@@ -30,6 +30,8 @@ export function Topbar({
   onGoPos,
   onSettings,
   onLogout,
+  superMode,
+  onToggleSuper,
 }: {
   crumb: string;
   title: string;
@@ -39,6 +41,8 @@ export function Topbar({
   onGoPos: () => void;
   onSettings: () => void;
   onLogout: () => void;
+  superMode: boolean;
+  onToggleSuper: () => void;
 }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -95,6 +99,12 @@ export function Topbar({
             <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-pine" />
             Toko Buka
           </span>
+
+          {superMode && (
+            <span className="hidden items-center gap-1.5 rounded-full border border-honey/70 bg-honey px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-pine-deep md:inline-flex">
+              <IconShieldPlus width={11} height={11} /> Super Admin
+            </span>
+          )}
 
           {/* notifikasi */}
           <div className="relative">
@@ -165,6 +175,12 @@ export function Topbar({
                   {[
                     { label: "Profil Saya", icon: <IconUsers width={15} height={15} />, act: () => {} },
                     { label: "Pengaturan Toko", icon: <IconSliders width={15} height={15} />, act: onSettings },
+                    {
+                      label: superMode ? "Keluar Mode Super Admin" : "Mode Super Admin",
+                      icon: <IconShieldPlus width={15} height={15} />,
+                      act: onToggleSuper,
+                      super: superMode,
+                    },
                     { label: "Keluar", icon: <IconLogout width={15} height={15} />, act: onLogout, danger: true },
                   ].map((m) => (
                     <button
@@ -181,6 +197,7 @@ export function Topbar({
                       <span className={m.danger ? "text-clay" : "text-fog"}>{m.icon}</span>
                       {m.label}
                       {m.label === "Profil Saya" && <IconCheck width={13} height={13} className="ml-auto text-pine" />}
+                      {"super" in m && m.super && <IconCheck width={13} height={13} className="ml-auto text-honey" />}
                     </button>
                   ))}
                 </div>

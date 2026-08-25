@@ -8,6 +8,7 @@ import {
   IconGrid,
   IconLogout,
   IconReceipt,
+  IconShieldPlus,
   IconSliders,
   IconTag,
   IconTrendUp,
@@ -32,7 +33,8 @@ export type View =
   | "bookkeeping"
   | "reports"
   | "customers"
-  | "settings";
+  | "settings"
+  | "superadmin";
 
 type NavItem = {
   id: View;
@@ -117,6 +119,10 @@ export function Sidebar({
     {
       title: "Sistem",
       items: [{ id: "settings", label: "Pengaturan Toko", icon: (p) => <IconSliders {...p} /> }],
+    },
+    {
+      title: "Platform",
+      items: [{ id: "superadmin", label: "Konsol Super Admin", icon: (p) => <IconShieldPlus {...p} /> }],
     },
   ];
 

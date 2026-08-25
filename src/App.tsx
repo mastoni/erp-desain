@@ -36,6 +36,18 @@ import { Bookkeeping } from "./views/Bookkeeping";
 import { Reports } from "./views/Reports";
 import { Customers } from "./views/Customers";
 import { SettingsView } from "./views/SettingsView";
+import { SuperAdmin } from "./views/SuperAdmin";
+import {
+  AUDIT_SEED,
+  PLANS,
+  SA_USERS,
+  TENANTS,
+  type AuditAction,
+  type AuditLog,
+  type Plan,
+  type Tenant,
+  type TenantUser,
+} from "./superadmin";
 
 const META: Record<View, { crumb: string; title: string }> = {
   dashboard: { crumb: "Dasbor", title: "Dasbor Operasional" },
@@ -52,6 +64,7 @@ const META: Record<View, { crumb: string; title: string }> = {
   reports: { crumb: "Laporan", title: "Laporan & Analisis" },
   customers: { crumb: "Pelanggan", title: "Pelanggan & Member" },
   settings: { crumb: "Pengaturan", title: "Pengaturan Toko & Perangkat" },
+  superadmin: { crumb: "Platform", title: "Konsol Super Admin" },
 };
 
 export default function App() {
@@ -69,11 +82,48 @@ export default function App() {
   const [posQuery, setPosQuery] = useState("");
   const [sideOpen, setSideOpen] = useState(false);
 
+  // ---- multi-tenant ----
+  const [tenants, setTenants] = useState<Tenant[]>(TENANTS);
+  const [plans, setPlans] = useState<Plan[]>(PLANS);
+  const [saUsers, setSaUsers] = useState<TenantUser[]>(SA_USERS);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(AUDIT_SEED);
+  const [superMode, setSuperMode] = useState(false);
+
   const push = useCallback((msg: string, tone: Toast["tone"] = "success") => {
     const id = Date.now() + Math.random();
     setToasts((t) => [...t, { id, msg, tone }]);
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3600);
   }, []);
+
+  const log = useCallback((action: AuditAction, entity: string, detail: string) => {
+    setAuditLogs((l) => [
+      {
+        id: `LOG-${Date.now()}`,
+        time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+        actor: "Aditya Pradana",
+        action,
+        entity,
+        detail,
+        ip: "103.10.64.21",
+      },
+      ...l,
+    ]);
+  }, []);
+
+  const toggleSuper = useCallback(() => {
+    setSuperMode((v) => {
+      const next = !v;
+      if (next) {
+        setView("superadmin");
+        push("Mode Super Admin aktif — Anda kini mengelola seluruh platform.", "info");
+        log("LOGIN", "auth", "Eskalasi sesi ke Super Admin (2FA diverifikasi)");
+      } else {
+        setView("dashboard");
+        push("Kembali ke mode tenant — Lumbung Mart.", "info");
+      }
+      return next;
+    });
+  }, [push, log]);
 
   const lowCount = products.filter((p) => p.stock <= p.minStock).length;
   const pendingOrders = ORDERS.filter((o) => o.status === "menunggu" || o.status === "diproses").length;
@@ -105,6 +155,8 @@ export default function App() {
           onGoPos={() => setView("pos")}
           onSettings={() => setView("settings")}
           onLogout={() => push("Ini aplikasi demo — sesi Anda tetap aman.", "info")}
+          superMode={superMode}
+          onToggleSuper={toggleSuper}
         />
 
         <main key={view} className="view-enter mx-auto max-w-[1440px] px-4 py-6 lg:px-8">
@@ -168,6 +220,19 @@ export default function App() {
           )}
           {view === "customers" && <Customers push={push} />}
           {view === "settings" && <SettingsView config={config} onSave={(c) => setConfig(c)} push={push} />}
+          {view === "superadmin" && (
+            <SuperAdmin
+              tenants={tenants}
+              setTenants={setTenants}
+              plans={plans}
+              setPlans={setPlans}
+              users={saUsers}
+              setUsers={setSaUsers}
+              logs={auditLogs}
+              log={log}
+              push={push}
+            />
+          )}
         </main>
 
         <footer className="mx-auto max-w-[1440px] px-4 pb-8 lg:px-8">

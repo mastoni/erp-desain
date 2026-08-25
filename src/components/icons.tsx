@@ -163,3 +163,18 @@ export const IconDrawer = (p: P) => (
 export const IconBarcode = (p: P) => (
   <svg {...base(p)}><path d="M4 6v12" /><path d="M7.5 6v12" /><path d="M10 6v9" /><path d="M13 6v12" /><path d="M16.5 6v9" /><path d="M20 6v12" /></svg>
 );
+export const IconDatabase = (p: P) => (
+  <svg {...base(p)}><ellipse cx="12" cy="5.5" rx="7.5" ry="3" /><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13" /><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3" /></svg>
+);
+export const IconServer = (p: P) => (
+  <svg {...base(p)}><rect x="3.5" y="4" width="17" height="6.5" rx="1.2" /><rect x="3.5" y="13.5" width="17" height="6.5" rx="1.2" /><path d="M7 7.2h.01M7 16.7h.01" /><path d="M12.5 7.2h4.5M12.5 16.7h4.5" /></svg>
+);
+export const IconActivity = (p: P) => (
+  <svg {...base(p)}><path d="M2.5 12h4l2.5-6.5 4 13L15.5 12h6" /></svg>
+);
+export const IconKey = (p: P) => (
+  <svg {...base(p)}><circle cx="8" cy="14.5" r="4.5" /><path d="M11.5 11.5 20 3" /><path d="M16 7l2.5 2.5" /><path d="M13.5 9.5 16 12" /></svg>
+);
+export const IconGlobe = (p: P) => (
+  <svg {...base(p)}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a13.5 13.5 0 0 1 0 18" /><path d="M12 3a13.5 13.5 0 0 0 0 18" /></svg>
+);
