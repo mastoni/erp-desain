@@ -37,6 +37,7 @@ import { Reports } from "./views/Reports";
 import { Customers } from "./views/Customers";
 import { SettingsView } from "./views/SettingsView";
 import { SuperAdmin } from "./views/SuperAdmin";
+import { MobileApp } from "./views/MobileApp";
 import {
   AUDIT_SEED,
   DIGITAL_SERVICES,
@@ -74,6 +75,7 @@ const META: Record<View, { crumb: string; title: string }> = {
   customers: { crumb: "Pelanggan", title: "Pelanggan & Member" },
   settings: { crumb: "Pengaturan", title: "Pengaturan Toko & Perangkat" },
   superadmin: { crumb: "Platform", title: "Konsol Super Admin" },
+  android: { crumb: "Platform", title: "Aplikasi Android Tenant" },
 };
 
 export default function App() {
@@ -318,6 +320,15 @@ export default function App() {
               setSettlement={setSettlement}
               logs={auditLogs}
               log={log}
+              push={push}
+            />
+          )}
+          {view === "android" && (
+            <MobileApp
+              products={products}
+              sales={sales}
+              config={config}
+              onSale={(rec) => setSales((prev) => [rec, ...prev])}
               push={push}
             />
           )}

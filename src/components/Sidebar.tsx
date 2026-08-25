@@ -10,6 +10,7 @@ import {
   IconReceipt,
   IconShieldPlus,
   IconSliders,
+  IconSmartphone,
   IconTag,
   IconTrendUp,
   IconTruck,
@@ -34,7 +35,8 @@ export type View =
   | "reports"
   | "customers"
   | "settings"
-  | "superadmin";
+  | "superadmin"
+  | "android";
 
 type NavItem = {
   id: View;
@@ -122,7 +124,10 @@ export function Sidebar({
     },
     {
       title: "Platform",
-      items: [{ id: "superadmin", label: "Konsol Super Admin", icon: (p) => <IconShieldPlus {...p} /> }],
+      items: [
+        { id: "superadmin", label: "Konsol Super Admin", icon: (p) => <IconShieldPlus {...p} /> },
+        { id: "android", label: "Aplikasi Android", icon: (p) => <IconSmartphone {...p} /> },
+      ],
     },
   ];
 
