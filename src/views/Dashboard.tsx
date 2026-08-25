@@ -107,7 +107,7 @@ export function Dashboard({
     <div>
       <SectionHead
         title="Dasbor Operasional"
-        desc={`${dateStr} · Ringkasan performa Lumbung Mart hari ini.`}
+        desc={`${dateStr} · Ringkasan performa ${"SKM Mart"} hari ini.`}
         action={
           <div className="flex items-center gap-2">
             <div className="flex rounded-lg border border-line bg-surface p-0.5">

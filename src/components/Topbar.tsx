@@ -72,7 +72,7 @@ export function Topbar({
         </button>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fog">Lumbung / {crumb}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fog">SKMNet / {crumb}</p>
           <h2 className="font-display truncate text-[17px] font-bold leading-tight">{title}</h2>
         </div>
 

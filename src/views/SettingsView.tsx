@@ -274,7 +274,7 @@ export function SettingsView({
                   <p className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.14em] text-fog">Pratinjau · {draft.printer.paper}</p>
                   <div className={cx("num rounded-sm border border-line bg-white px-3 py-3.5 text-[10px] leading-relaxed shadow-sm transition-all duration-300", paperW)}>
                     {draft.printer.printLogo && (
-                      <div className="mx-auto mb-1.5 flex h-8 w-8 items-center justify-center rounded bg-pine-deep text-[8px] font-bold text-honey">LM</div>
+                      <div className="mx-auto mb-1.5 flex h-8 w-8 items-center justify-center rounded bg-pine-deep text-[8px] font-bold text-honey">SM</div>
                     )}
                     <p className="text-center text-[11px] font-bold">{draft.storeName.toUpperCase()}</p>
                     <p className="text-center text-fog">{draft.address}</p>

@@ -312,7 +312,7 @@ export function Reports({
               {panelHead(REPORTS[1])}
               <div className="mx-auto max-w-xl p-5">
                 <p className="mb-4 text-center text-[11.5px] font-semibold uppercase tracking-[0.16em] text-fog">
-                  Laporan Laba Rugi · Periode {range} hari · Lumbung Mart
+                  Laporan Laba Rugi · Periode {range} hari · SKM Mart
                 </p>
                 <dl className="num text-[14px]">
                   <div className="flex justify-between py-2 font-semibold"><dt>Pendapatan Penjualan</dt><dd>{idr(omzet)}</dd></div>

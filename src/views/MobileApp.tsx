@@ -193,7 +193,7 @@ function PhoneApp({
           <div className="pop flex h-20 w-20 items-center justify-center rounded-[26px] bg-pine shadow-[0_18px_40px_-12px_rgba(0,0,0,0.6)]">
             <IconStore width={38} height={38} className="text-honey" />
           </div>
-          <p className="font-display mt-5 text-[21px] font-bold text-[#f5f0df]">Lumbung Tenant</p>
+          <p className="font-display mt-5 text-[21px] font-bold text-[#f5f0df]">SKMNet Tenant</p>
           <p className="mt-1 text-[11px] text-white/50">Kasir & ERP dalam genggaman</p>
           <div className="mt-8 h-1 w-24 overflow-hidden rounded-full bg-white/10">
             <div className="bar-fill h-full w-full rounded-full bg-honey" style={{ animationDuration: "1.4s" }} />
@@ -214,7 +214,7 @@ function PhoneApp({
             <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-pine" /> {config.storeName} · T-001
           </div>
           <label className="label mt-6">Email</label>
-          <input defaultValue="rani@lumbungmart.id" className="input bg-white" />
+          <input defaultValue="rani@skmmart.id" className="input bg-white" />
           <label className="label mt-3">PIN</label>
           <input defaultValue="••••••" type="password" className="input bg-white" />
           <button onClick={login} disabled={busy} className="btn-primary mt-6 w-full py-3">
@@ -445,7 +445,7 @@ function PhoneApp({
                 </span>
                 <div>
                   <p className="font-display text-[15px] font-bold leading-tight">{config.storeName}</p>
-                  <p className="num text-[10px] text-fog">lumbungmart.lumbung.cloud · Paket Pro</p>
+                  <p className="num text-[10px] text-fog">skmmart.skmnet.cloud · Paket Pro</p>
                 </div>
                 <Badge tone="honey" className="ml-auto">Pro</Badge>
               </div>
@@ -472,7 +472,7 @@ function PhoneApp({
               >
                 <IconLogout width={15} height={15} /> Keluar
               </button>
-              <p className="num mt-3 text-center text-[9px] text-fog">Lumbung Tenant v2.4.0 (build 24) · Android 14</p>
+              <p className="num mt-3 text-center text-[9px] text-fog">SKMNet Tenant v2.4.0 (build 24) · Android 14</p>
             </div>
           )}
         </div>
@@ -657,7 +657,7 @@ function ArchDiagram() {
       {[
         { y: 14, t1: "Aplikasi Android (Flutter)", t2: "UI kasir · PPOB · stok" },
         { y: 108, t1: "API Gateway", t2: "verifikasi JWT · X-Tenant-Id" },
-        { y: 202, t1: "Layanan Lumbung Cloud", t2: "kasir · ppob · inventory · ledger" },
+        { y: 202, t1: "Layanan SKMNet Cloud", t2: "kasir · ppob · inventory · ledger" },
         { y: 282, t1: "PostgreSQL + Row-Level Security", t2: "satu database · partisi per tenant" },
       ].map((b) => (
         <g key={b.y}>
@@ -710,12 +710,12 @@ export function MobileApp({
 
   const downloadZip = async () => {
     const zip = new JSZip();
-    for (const f of FLUTTER_FILES) zip.file(`lumbung_tenant/${f.path}`, f.code);
+    for (const f of FLUTTER_FILES) zip.file(`skmnet_tenant/${f.path}`, f.code);
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "lumbung_tenant_flutter.zip";
+    a.download = "skmnet_tenant_flutter.zip";
     a.click();
     URL.revokeObjectURL(url);
     push("Proyek Flutter diunduh — ekstrak lalu jalankan `flutter pub get && flutter run`.");
@@ -743,7 +743,7 @@ export function MobileApp({
     <div>
       <SectionHead
         title="Aplikasi Android Tenant"
-        desc="Satu APK Flutter untuk seluruh tenant Lumbung Cloud — data terisolasi per tenant via JWT + X-Tenant-Id."
+        desc="Satu APK Flutter untuk seluruh tenant SKMNet Cloud — data terisolasi per tenant via JWT + X-Tenant-Id."
         action={
           <div className="flex items-center gap-2">
             <Badge tone="pine" className="px-2.5! py-1.5!">v2.4.0 · build 24</Badge>
@@ -888,7 +888,7 @@ export function MobileApp({
                 <button
                   className="btn-outline mt-4 w-full py-2 text-[12px]"
                   onClick={() => {
-                    downloadCsv("endpoint-api-lumbung-tenant", [
+                    downloadCsv("endpoint-api-skmnet-tenant", [
                       ["Metode", "Endpoint", "Deskripsi"],
                       ...ENDPOINTS.map((e) => [e.m, e.p, e.d]),
                     ]);
@@ -905,8 +905,8 @@ export function MobileApp({
           <Reveal delay={200}>
             <div className="card flex flex-wrap items-center gap-5 p-5">
               <div className="rounded-lg border-[1.5px] border-ink/70 bg-white p-3">
-                <Barcode value="https://play.lumbung.cloud/tenant-app" className="h-12 w-36 fill-ink" />
-                <p className="num mt-1 text-center text-[8.5px] tracking-[0.14em] text-fog">play.lumbung.cloud/tenant-app</p>
+                <Barcode value="https://play.skmnet.cloud/tenant-app" className="h-12 w-36 fill-ink" />
+                <p className="num mt-1 text-center text-[8.5px] tracking-[0.14em] text-fog">play.skmnet.cloud/tenant-app</p>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-display text-[16px] font-bold">Instal di Perangkat Kasir</p>

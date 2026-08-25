@@ -4,8 +4,8 @@ export const FLUTTER_FILES: FlutterFile[] = [
   {
     path: "pubspec.yaml",
     desc: "Dependensi & metadata aplikasi",
-    code: `name: lumbung_tenant
-description: Aplikasi kasir & ERP tenant Lumbung Cloud (Android).
+    code: `name: skmnet_tenant
+description: Aplikasi kasir & ERP tenant SKMNet Cloud (Android).
 publish_to: "none"
 version: 2.4.0+24
 
@@ -18,7 +18,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   provider: ^6.1.1        # state management
-  dio: ^5.4.0             # HTTP client (REST API Lumbung Cloud)
+  dio: ^5.4.0             # HTTP client (REST API SKMNet Cloud)
   shared_preferences: ^2.2.2  # sesi login offline
   intl: ^0.19.0           # format Rupiah & tanggal
   sqflite: ^2.3.2         # antrian transaksi offline (offline-first)
@@ -55,12 +55,12 @@ import 'screens/splash_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  runApp(LumbungTenantApp(prefs: prefs));
+  runApp(SkmnetTenantApp(prefs: prefs));
 }
 
-class LumbungTenantApp extends StatelessWidget {
+class SkmnetTenantApp extends StatelessWidget {
   final SharedPreferences prefs;
-  const LumbungTenantApp({super.key, required this.prefs});
+  const SkmnetTenantApp({super.key, required this.prefs});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +71,7 @@ class LumbungTenantApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => Session(prefs, api)),
       ],
       child: MaterialApp(
-        title: 'Lumbung Tenant',
+        title: 'SKMNet Tenant',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         home: const SplashScreen(),
@@ -83,7 +83,7 @@ class LumbungTenantApp extends StatelessWidget {
   },
   {
     path: "lib/app_theme.dart",
-    desc: "Tema — palet pine & honey Lumbung",
+    desc: "Tema — palet pine & honey SKMNet",
     code: `import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -183,7 +183,7 @@ class Session extends ChangeNotifier {
     code: `import 'package:dio/dio.dart';
 
 class ApiClient {
-  static const baseUrl = 'https://api.lumbung.cloud/v1';
+  static const baseUrl = 'https://api.skmnet.cloud/v1';
   final Dio dio = Dio(BaseOptions(baseUrl: baseUrl));
 
   void setAuth(String token, String tenantId) {
@@ -309,7 +309,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 child: const Icon(Icons.storefront_rounded, size: 56, color: Color(0xFFF2D9A0)),
               ),
               const SizedBox(height: 18),
-              Text('Lumbung Tenant',
+              Text('SKMNet Tenant',
                   style: TextStyle(
                       fontFamily: 'Bricolage',
                       fontSize: 26,
@@ -438,7 +438,7 @@ class _RootScreenState extends State<RootScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(store.isEmpty ? 'Lumbung Tenant' : store,
+            Text(store.isEmpty ? 'SKMNet Tenant' : store,
                 style: const TextStyle(fontFamily: 'Bricolage', fontSize: 17)),
             const Text('Online · tersinkron', style: TextStyle(fontSize: 10, color: AppTheme.pine)),
           ],
@@ -574,16 +574,16 @@ class _KasirScreenState extends State<KasirScreen> {
   {
     path: "README.md",
     desc: "Cara build & arsitektur multi-tenant",
-    code: `# Lumbung Tenant — Aplikasi Android (Flutter)
+    code: `# SKMNet Tenant — Aplikasi Android (Flutter)
 
-Aplikasi kasir & ERP untuk **tenant** Lumbung Cloud. Satu APK melayani
+Aplikasi kasir & ERP untuk **tenant** SKMNet Cloud. Satu APK melayani
 seluruh tenant; data diisolasi per tenant melalui header \`X-Tenant-Id\`
 yang diverifikasi JWT + Row-Level Security di PostgreSQL.
 
 ## Menjalankan
 
 \`\`\`bash
-flutter create . --project-name lumbung_tenant
+flutter create . --project-name skmnet_tenant
 flutter pub get
 flutter run            # debug di emulator / perangkat
 flutter build apk --release   # APK distribusi
@@ -592,7 +592,7 @@ flutter build appbundle       # untuk Google Play
 
 ## Arsitektur
 
-- UI: Material 3, tema pine/honey Lumbung.
+- UI: Material 3, tema pine/honey SKMNet.
 - State: Provider (Session, ApiClient).
 - Jaringan: dio + interceptor; retry + antrian sqflite saat offline
   (offline-first — kasir tetap bisa jualan tanpa internet).

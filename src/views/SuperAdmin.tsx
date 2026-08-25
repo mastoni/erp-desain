@@ -254,7 +254,7 @@ const STRATEGIES = [
   },
   {
     id: "rls", name: "Row-Level Security (RLS)", bars: [3, 5, 4], rec: true,
-    desc: "Satu database & schema bersama; setiap baris dipartisi oleh tenant_id dan dikunci policy RLS PostgreSQL. Paling hemat dan elastis — default Lumbung Cloud.",
+    desc: "Satu database & schema bersama; setiap baris dipartisi oleh tenant_id dan dikunci policy RLS PostgreSQL. Paling hemat dan elastis — default SKMNet Cloud.",
   },
 ];
 
@@ -387,7 +387,7 @@ export function SuperAdmin({
         ]);
       }
       log("CREATE", "tenants", `Tenant baru ${id} ${form.name} (${planName(form.planId)}, status ${form.status})`);
-      push(`Tenant "${form.name}" berhasil dibuat — subdomain ${sub}.lumbung.cloud siap.`, "success");
+      push(`Tenant "${form.name}" berhasil dibuat — subdomain ${sub}.skmnet.cloud siap.`, "success");
     } else if (form.id) {
       setTenants((ts) => ts.map((t) => (t.id === form.id ? { ...t, ...{ name: form.name.trim(), subdomain: sub, planId: form.planId, region: form.region.trim(), owner: form.owner.trim(), email: form.email.trim(), status: form.status } } : t)));
       log("UPDATE", "tenants", `Memperbarui profil ${form.id} ${form.name} (paket → ${planName(form.planId)})`);
@@ -550,7 +550,7 @@ export function SuperAdmin({
     <div>
       <SectionHead
         title="Konsol Super Admin"
-        desc="Kendali platform multi-tenant Lumbung Cloud — provision tenant, paket, pengguna, dan skema database."
+        desc="Kendali platform multi-tenant SKMNet Cloud — provision tenant, paket, pengguna, dan skema database."
         action={
           <div className="flex items-center gap-2">
             <Badge tone="honey" className="px-2.5! py-1.5! uppercase tracking-wider">Akses Platform</Badge>
@@ -745,7 +745,7 @@ export function SuperAdmin({
                                     {t.name}
                                     {t.current && <Badge tone="honey">Anda</Badge>}
                                   </p>
-                                  <p className="num truncate text-[10.5px] text-fog">{t.subdomain}.lumbung.cloud · sejak {t.createdAt}</p>
+                                  <p className="num truncate text-[10.5px] text-fog">{t.subdomain}.skmnet.cloud · sejak {t.createdAt}</p>
                                 </div>
                               </div>
                             </td>
@@ -1347,7 +1347,7 @@ export function SuperAdmin({
               <label className="label">Subdomain</label>
               <div className="flex items-center gap-1">
                 <input value={form.subdomain} onChange={(e) => setForm({ ...form, subdomain: slugify(e.target.value) })} className="input num" />
-                <span className="num shrink-0 text-[11px] text-fog">.lumbung.cloud</span>
+                <span className="num shrink-0 text-[11px] text-fog">.skmnet.cloud</span>
               </div>
             </div>
           </div>

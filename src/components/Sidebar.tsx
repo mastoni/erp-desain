@@ -145,7 +145,7 @@ export function Sidebar({
         <div className="flex items-center gap-3 px-5 pt-5 pb-4">
           <BarnMark />
           <div className="min-w-0">
-            <p className="font-display text-[19px] font-bold leading-none tracking-tight text-[#f5f0df]">Lumbung</p>
+            <p className="font-display text-[19px] font-bold leading-none tracking-tight text-[#f5f0df]">SKMNet</p>
             <p className="num mt-1 text-[9.5px] font-semibold uppercase tracking-[0.28em] text-honey">ERP · POS</p>
           </div>
           <button onClick={onClose} className="ml-auto rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden cursor-pointer" aria-label="Tutup menu">

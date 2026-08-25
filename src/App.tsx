@@ -38,6 +38,8 @@ import { Customers } from "./views/Customers";
 import { SettingsView } from "./views/SettingsView";
 import { SuperAdmin } from "./views/SuperAdmin";
 import { MobileApp } from "./views/MobileApp";
+import { Helpdesk } from "./support/Helpdesk";
+import type { OcCtx } from "./support/openclaw";
 import {
   AUDIT_SEED,
   DIGITAL_SERVICES,
@@ -106,7 +108,7 @@ export default function App() {
   const [settlement, setSettlement] = useState<SettlementCfg>({ mode: "h1", minPayout: 100_000, autoSettle: true });
 
   /**
-   * Kontrak platform → kasir tenant (Lumbung Mart = T-001).
+   * Kontrak platform → kasir tenant (SKM Mart = T-001).
    * - hiddenDigitalCats: kategori yang dimatikan platform untuk tenant ini.
    * - fee/komisi override: biaya admin & komisi agen mengikuti profit share platform.
    */
@@ -194,7 +196,7 @@ export default function App() {
         log("LOGIN", "auth", "Eskalasi sesi ke Super Admin (2FA diverifikasi)");
       } else {
         setView("dashboard");
-        push("Kembali ke mode tenant — Lumbung Mart.", "info");
+        push("Kembali ke mode tenant — SKM Mart.", "info");
       }
       return next;
     });
@@ -203,6 +205,23 @@ export default function App() {
   const lowCount = products.filter((p) => p.stock <= p.minStock).length;
   const pendingOrders = ORDERS.filter((o) => o.status === "menunggu" || o.status === "diproses").length;
   const dueBills = payables.filter((p) => p.status === "jatuh tempo").length;
+
+  // Konteks operasional tenant untuk personal AI OpenClaw (helpdesk).
+  const ocCtx = useMemo<OcCtx>(
+    () => ({
+      storeName: config.storeName,
+      subdomain: "skm-mart",
+      plan: "Pro",
+      superMode,
+      salesToday: sales.reduce((s, r) => s + r.total, 0),
+      salesCount: sales.length,
+      lowStock: lowCount,
+      dueBills,
+      pendingOrders,
+      digitalCommission: digitalTxs.filter((t) => t.status === "sukses").reduce((s, t) => s + t.commission, 0),
+    }),
+    [config.storeName, superMode, sales, lowCount, dueBills, pendingOrders, digitalTxs]
+  );
 
   return (
     <div className="min-h-screen">
@@ -336,11 +355,12 @@ export default function App() {
 
         <footer className="mx-auto max-w-[1440px] px-4 pb-8 lg:px-8">
           <p className="num border-t border-line pt-4 text-center text-[11px] text-fog">
-            Lumbung ERP &amp; POS v2.4 · Data tersinkron 2 menit lalu · {config.storeName} Yogyakarta
+            SKMNet ERP &amp; POS v2.4 · Data tersinkron 2 menit lalu · {config.storeName} Yogyakarta
           </p>
         </footer>
       </div>
 
+      <Helpdesk ctx={ocCtx} push={push} />
       <ToastStack toasts={toasts} onDismiss={(id) => setToasts((t) => t.filter((x) => x.id !== id))} />
     </div>
   );
