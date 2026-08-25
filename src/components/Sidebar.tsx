@@ -6,6 +6,7 @@ import {
   IconBuilding,
   IconFile,
   IconGrid,
+  IconKey,
   IconLogout,
   IconReceipt,
   IconShieldPlus,
@@ -34,6 +35,7 @@ export type View =
   | "bookkeeping"
   | "reports"
   | "customers"
+  | "langganan"
   | "settings"
   | "superadmin"
   | "android";
@@ -111,6 +113,7 @@ export function Sidebar({
       items: [
         { id: "bookkeeping", label: "Pembukuan Keuangan", icon: (p) => <IconBook {...p} />, badge: dueBills, badgeTone: "honey" },
         { id: "finance", label: "Laporan Keuangan", icon: (p) => <IconWallet {...p} /> },
+        { id: "langganan", label: "Langganan", icon: (p) => <IconKey {...p} /> },
         { id: "reports", label: "Laporan", icon: (p) => <IconFile {...p} /> },
       ],
     },

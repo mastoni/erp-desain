@@ -40,6 +40,21 @@ import { SuperAdmin } from "./views/SuperAdmin";
 import { MobileApp } from "./views/MobileApp";
 import { Helpdesk } from "./support/Helpdesk";
 import type { OcCtx } from "./support/openclaw";
+import { Subscription } from "./views/Subscription";
+import {
+  CAMERAS_SEED,
+  CCTV_EVENTS_SEED,
+  INVOICES_SEED,
+  MODULES_SEED,
+  RTRW_CUSTOMERS_SEED,
+  VOUCHERS_SEED,
+  type Camera,
+  type CctvEvent,
+  type Invoice,
+  type ModuleState,
+  type RtrwCustomer,
+  type Voucher,
+} from "./subscription";
 import {
   AUDIT_SEED,
   DIGITAL_SERVICES,
@@ -76,6 +91,7 @@ const META: Record<View, { crumb: string; title: string }> = {
   reports: { crumb: "Laporan", title: "Laporan & Analisis" },
   customers: { crumb: "Pelanggan", title: "Pelanggan & Member" },
   settings: { crumb: "Pengaturan", title: "Pengaturan Toko & Perangkat" },
+  langganan: { crumb: "Langganan", title: "Langganan & Modul Layanan" },
   superadmin: { crumb: "Platform", title: "Konsol Super Admin" },
   android: { crumb: "Platform", title: "Aplikasi Android Tenant" },
 };
@@ -91,6 +107,16 @@ export default function App() {
   const [receivables, setReceivables] = useState<Debt[]>(RECEIVABLES);
   const [payables, setPayables] = useState<Debt[]>(PAYABLES);
   const [config, setConfig] = useState<StoreConfig>(DEFAULT_CONFIG);
+
+  // ---- langganan & modul layanan ----
+  const [modules, setModules] = useState<ModuleState[]>(MODULES_SEED);
+  const [invoices, setInvoices] = useState<Invoice[]>(INVOICES_SEED);
+  const [rtrwCustomers, setRtrwCustomers] = useState<RtrwCustomer[]>(RTRW_CUSTOMERS_SEED);
+  const [vouchers, setVouchers] = useState<Voucher[]>(VOUCHERS_SEED);
+  const [cameras, setCameras] = useState<Camera[]>(CAMERAS_SEED);
+  const [cctvPlanId, setCctvPlanId] = useState("s2");
+  const [cctvEvents] = useState<CctvEvent[]>(CCTV_EVENTS_SEED);
+
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [posQuery, setPosQuery] = useState("");
   const [sideOpen, setSideOpen] = useState(false);
@@ -255,7 +281,20 @@ export default function App() {
 
         <main key={view} className="view-enter mx-auto max-w-[1440px] px-4 py-6 lg:px-8">
           {view === "dashboard" && (
-            <Dashboard products={products} digitalTxs={digitalTxs} dueBills={dueBills} sales={sales} onNavigate={setView} push={push} />
+            <Dashboard
+              products={products}
+              digitalTxs={digitalTxs}
+              dueBills={dueBills}
+              sales={sales}
+              onNavigate={setView}
+              push={push}
+              modules={modules}
+              rtrwCustomers={rtrwCustomers}
+              vouchers={vouchers}
+              cameras={cameras}
+              cctvPlanId={cctvPlanId}
+              cctvEvents={cctvEvents}
+            />
           )}
           {view === "pos" && (
             <POS
@@ -322,6 +361,25 @@ export default function App() {
             />
           )}
           {view === "customers" && <Customers push={push} />}
+          {view === "langganan" && (
+            <Subscription
+              plans={plans}
+              tenants={tenants}
+              modules={modules}
+              setModules={setModules}
+              invoices={invoices}
+              setInvoices={setInvoices}
+              customers={rtrwCustomers}
+              setCustomers={setRtrwCustomers}
+              vouchers={vouchers}
+              setVouchers={setVouchers}
+              cameras={cameras}
+              cctvPlanId={cctvPlanId}
+              setCctvPlanId={setCctvPlanId}
+              events={cctvEvents}
+              push={push}
+            />
+          )}
           {view === "settings" && <SettingsView config={config} onSave={(c) => setConfig(c)} push={push} />}
           {view === "superadmin" && (
             <SuperAdmin
