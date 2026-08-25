@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CONFIG,
   DIGITAL_TXS,
@@ -39,12 +39,21 @@ import { SettingsView } from "./views/SettingsView";
 import { SuperAdmin } from "./views/SuperAdmin";
 import {
   AUDIT_SEED,
+  DIGITAL_SERVICES,
+  PLATFORM_TXS,
   PLANS,
   SA_USERS,
+  SERVICE_TO_CAT,
+  svcPlatformCut,
+  svcTenantCut,
   TENANTS,
   type AuditAction,
   type AuditLog,
+  type DigitalService,
   type Plan,
+  type PlatformTx,
+  type ServiceId,
+  type SettlementCfg,
   type Tenant,
   type TenantUser,
 } from "./superadmin";
@@ -88,6 +97,70 @@ export default function App() {
   const [saUsers, setSaUsers] = useState<TenantUser[]>(SA_USERS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(AUDIT_SEED);
   const [superMode, setSuperMode] = useState(false);
+
+  // ---- transaksi digital terpusat (profit share) ----
+  const [services, setServices] = useState<DigitalService[]>(DIGITAL_SERVICES);
+  const [platformTxs, setPlatformTxs] = useState<PlatformTx[]>(PLATFORM_TXS);
+  const [settlement, setSettlement] = useState<SettlementCfg>({ mode: "h1", minPayout: 100_000, autoSettle: true });
+
+  /**
+   * Kontrak platform → kasir tenant (Lumbung Mart = T-001).
+   * - hiddenDigitalCats: kategori yang dimatikan platform untuk tenant ini.
+   * - fee/komisi override: biaya admin & komisi agen mengikuti profit share platform.
+   */
+  const tenantContract = useMemo(() => {
+    const svcFor = (id: ServiceId) => services.find((s) => s.id === id);
+    const catOn: Record<string, boolean> = {};
+    for (const s of services) {
+      const cat = SERVICE_TO_CAT[s.id];
+      const on = s.enabled && !s.tenantOff.includes("T-001");
+      catOn[cat] = (catOn[cat] ?? false) || on;
+    }
+    const hidden = new Set<string>();
+    for (const cat of Object.keys(catOn)) if (!catOn[cat]) hidden.add(cat);
+
+    const feeOverrides: Record<string, number> = {};
+    const komisiOverrides: Record<string, number> = {};
+    for (const s of services) {
+      feeOverrides[s.id] = s.adminFee;
+      komisiOverrides[s.id] = svcTenantCut(s);
+    }
+    return { hidden: Array.from(hidden), feeOverrides, komisiOverrides, svcFor };
+  }, [services]);
+
+  /** Simulasi transaksi digital baru yang masuk dari tenant lain (setiap ~24 dtk). */
+  const simTimer = useRef<number | null>(null);
+  useEffect(() => {
+    simTimer.current = window.setInterval(() => {
+      const pool = services.filter((s) => s.enabled);
+      if (!pool.length || tenants.length < 2) return;
+      const s = pool[Math.floor(Math.random() * pool.length)];
+      const others = tenants.filter((t) => t.id !== "T-001");
+      const t = others[Math.floor(Math.random() * others.length)];
+      if (!t) return;
+      const cut = svcPlatformCut(s);
+      const tx: PlatformTx = {
+        id: `PTX-${Math.floor(90130 + Math.random() * 800)}`,
+        time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+        tenantId: t.id,
+        serviceId: s.id,
+        target: `08xx-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(1000 + Math.random() * 8999)}`,
+        nominal: s.denom,
+        hargaJual: s.hargaJual,
+        hpp: s.hpp,
+        adminFee: s.adminFee,
+        platformCut: cut,
+        tenantCut: svcTenantCut(s),
+        status: "pending",
+      };
+      setPlatformTxs((prev) => [tx, ...prev].slice(0, 60));
+      push(`Transaksi digital baru dari ${t.name} — ${s.label} masuk antrian settlement.`, "info");
+    }, 24_000);
+    return () => {
+      if (simTimer.current) window.clearInterval(simTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [services, tenants]);
 
   const push = useCallback((msg: string, tone: Toast["tone"] = "success") => {
     const id = Date.now() + Math.random();
@@ -174,7 +247,16 @@ export default function App() {
               onSale={(rec) => setSales((prev) => [rec, ...prev])}
             />
           )}
-          {view === "digital" && <Digital txs={digitalTxs} setTxs={setDigitalTxs} push={push} />}
+          {view === "digital" && (
+            <Digital
+              txs={digitalTxs}
+              setTxs={setDigitalTxs}
+              push={push}
+              hiddenCats={tenantContract.hidden}
+              feeOverrides={tenantContract.feeOverrides}
+              komisiOverrides={tenantContract.komisiOverrides}
+            />
+          )}
           {view === "sales" && <Sales sales={sales} push={push} />}
           {view === "products" && <Products products={products} setProducts={setProducts} config={config} push={push} />}
           {view === "inventory" && <Inventory products={products} setProducts={setProducts} push={push} />}
@@ -228,6 +310,12 @@ export default function App() {
               setPlans={setPlans}
               users={saUsers}
               setUsers={setSaUsers}
+              services={services}
+              setServices={setServices}
+              platformTxs={platformTxs}
+              setPlatformTxs={setPlatformTxs}
+              settlement={settlement}
+              setSettlement={setSettlement}
               logs={auditLogs}
               log={log}
               push={push}

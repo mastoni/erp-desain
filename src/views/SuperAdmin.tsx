@@ -1,11 +1,19 @@
 import { useMemo, useState, type ReactNode } from "react";
 import {
   MRR_TREND,
+  SERVICE_TO_CAT,
   SYSTEM_SERVICES,
+  svcPie,
+  svcPlatformCut,
+  svcTenantCut,
   type AuditAction,
   type AuditLog,
+  type DigitalService,
   type Plan,
+  type PlatformTx,
   type SaRole,
+  type ServiceId,
+  type SettlementCfg,
   type Tenant,
   type TenantStatus,
   type TenantUser,
@@ -18,6 +26,7 @@ import {
   IconActivity,
   IconBuilding,
   IconCheck,
+  IconCoins,
   IconDatabase,
   IconDownload,
   IconGlobe,
@@ -26,14 +35,17 @@ import {
   IconPlus,
   IconSearch,
   IconServer,
+  IconSliders,
+  IconSwap,
   IconTrash,
   IconUsers,
   IconX,
+  IconZap,
 } from "../components/icons";
 
 type Push = (msg: string, tone?: Toast["tone"]) => void;
 type LogFn = (action: AuditAction, entity: string, detail: string) => void;
-type Tab = "ikhtisar" | "tenants" | "plans" | "users" | "schema" | "audit";
+type Tab = "ikhtisar" | "tenants" | "digital" | "plans" | "users" | "schema" | "audit";
 
 const ROLE_META: Record<SaRole, { label: string; tone: "honey" | "pine" | "tide" | "fog" }> = {
   super_admin: { label: "Super Admin", tone: "honey" },
@@ -266,6 +278,12 @@ export function SuperAdmin({
   setPlans,
   users,
   setUsers,
+  services,
+  setServices,
+  platformTxs,
+  setPlatformTxs,
+  settlement,
+  setSettlement,
   logs,
   log,
   push,
@@ -276,6 +294,12 @@ export function SuperAdmin({
   setPlans: React.Dispatch<React.SetStateAction<Plan[]>>;
   users: TenantUser[];
   setUsers: React.Dispatch<React.SetStateAction<TenantUser[]>>;
+  services: DigitalService[];
+  setServices: React.Dispatch<React.SetStateAction<DigitalService[]>>;
+  platformTxs: PlatformTx[];
+  setPlatformTxs: React.Dispatch<React.SetStateAction<PlatformTx[]>>;
+  settlement: SettlementCfg;
+  setSettlement: React.Dispatch<React.SetStateAction<SettlementCfg>>;
   logs: AuditLog[];
   log: LogFn;
   push: Push;
@@ -292,6 +316,12 @@ export function SuperAdmin({
   const [uf, setUf] = useState({ name: "", email: "", tenantId: "T-001", role: "kasir" as SaRole });
   const [auditFilter, setAuditFilter] = useState<"semua" | AuditAction>("semua");
   const [strategy, setStrategy] = useState("rls");
+
+  /* ---------- state transaksi digital ---------- */
+  const [svcTenantFor, setSvcTenantFor] = useState<ServiceId | null>(null);
+  const [simSvc, setSimSvc] = useState<ServiceId>("pulsa");
+  const [settleFilter, setSettleFilter] = useState<"semua" | "berhasil" | "pending">("semua");
+  const [settleTenant, setSettleTenant] = useState("semua");
 
   /* ---------- turunan ---------- */
   const activeTenants = tenants.filter((t) => t.status === "aktif");
@@ -409,9 +439,85 @@ export function SuperAdmin({
 
   const filteredLogs = logs.filter((l) => auditFilter === "semua" || l.action === auditFilter);
 
+  /* ---------- transaksi digital: helper ---------- */
+  const patchSvc = (id: ServiceId, patch: Partial<DigitalService>, silent = false) => {
+    setServices((svcs) => svcs.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+    if (!silent) {
+      const s = services.find((x) => x.id === id);
+      log("UPDATE", "digital_services", `Mengubah ${s?.label ?? id}: ${Object.keys(patch).join(", ")}`);
+    }
+  };
+
+  const toggleSvcGlobal = (id: ServiceId) => {
+    const s = services.find((x) => x.id === id);
+    if (!s) return;
+    const next = !s.enabled;
+    patchSvc(id, { enabled: next }, true);
+    log(next ? "AKTIVASI" : "SUSPEND", "digital_services", `${next ? "Mengaktifkan" : "Menonaktifkan"} layanan ${s.label} untuk semua tenant`);
+    push(
+      next ? `Layanan ${s.label} diaktifkan untuk semua tenant.` : `Layanan ${s.label} dimatikan — hilang dari kasir tenant pada sinkron berikutnya.`,
+      next ? "success" : "warn"
+    );
+  };
+
+  const svcEnabledFor = (s: DigitalService, tenantId: string) => s.enabled && !s.tenantOff.includes(tenantId);
+
+  const toggleSvcTenant = (id: ServiceId, tenantId: string) => {
+    const s = services.find((x) => x.id === id);
+    const t = tenants.find((x) => x.id === tenantId);
+    if (!s) return;
+    const currentlyOff = s.tenantOff.includes(tenantId);
+    patchSvc(
+      id,
+      { tenantOff: currentlyOff ? s.tenantOff.filter((x) => x !== tenantId) : [...s.tenantOff, tenantId] },
+      true
+    );
+    log("UPDATE", "digital_services", `${currentlyOff ? "Mengaktifkan" : "Mematikan"} ${s.label} khusus tenant ${t?.name ?? tenantId}`);
+    push(`${s.label} ${currentlyOff ? "diaktifkan" : "dimatikan"} untuk ${t?.name ?? tenantId}.`, currentlyOff ? "success" : "warn");
+  };
+
+  /* settlement */
+  const settled = platformTxs.filter((t) => t.status === "berhasil");
+  const pending = platformTxs.filter((t) => t.status === "pending");
+  const platformRevenue = settled.reduce((s, t) => s + t.platformCut, 0);
+  const pendingPayout = pending.reduce((s, t) => s + t.tenantCut, 0);
+  const platformRevenueAnim = useCountUp(platformRevenue);
+  const volumeToday = platformTxs.reduce((s, t) => s + t.nominal, 0);
+
+  const processSettlement = () => {
+    if (!pending.length) return;
+    setPlatformTxs((txs) => txs.map((t) => (t.status === "pending" ? { ...t, status: "berhasil" as const } : t)));
+    log("UPDATE", "settlement", `Memproses settlement ${pending.length} transaksi — membayarkan ${idr(pendingPayout)} ke tenant`);
+    push(`Settlement ${pending.length} transaksi diproses · ${idr(pendingPayout)} diteruskan ke saldo tenant.`, "success");
+  };
+
+  const filteredSettle = platformTxs.filter(
+    (t) => (settleFilter === "semua" || t.status === settleFilter) && (settleTenant === "semua" || t.tenantId === settleTenant)
+  );
+
+  /* simulator */
+  const simService = services.find((s) => s.id === simSvc)!;
+  const simHasMarkup = simService.hargaMax > simService.denom;
+  const [simJual, setSimJual] = useState(simService.hargaJual);
+  const simPie = (simJual - simService.hpp) + simService.adminFee;
+  const simPlatform = Math.round((simPie * simService.platformShare) / 100);
+  const simTenant = simPie - simPlatform;
+
+  const svcIcon = (id: ServiceId) => {
+    const map: Record<ServiceId, ReactNode> = {
+      pulsa: <IconZap width={15} height={15} />, data: <IconZap width={15} height={15} />, ewallet: <IconCoins width={15} height={15} />,
+      token: <IconZap width={15} height={15} />, tagihan: <IconZap width={15} height={15} />, bpjs: <IconCheck width={15} height={15} />, pdam: <IconZap width={15} height={15} />,
+      transfer: <IconSwap width={15} height={15} />, tarik: <IconCoins width={15} height={15} />,
+    };
+    return map[id];
+  };
+
+  const pendingCount = platformTxs.filter((t) => t.status === "pending").length;
+
   const TABS: { id: Tab; label: string; icon: ReactNode; count?: number }[] = [
     { id: "ikhtisar", label: "Ikhtisar", icon: <IconActivity width={16} height={16} /> },
     { id: "tenants", label: "Penyewa (Tenant)", icon: <IconBuilding width={16} height={16} />, count: tenants.length },
+    { id: "digital", label: "Transaksi Digital", icon: <IconZap width={16} height={16} />, count: pendingCount },
     { id: "plans", label: "Paket Langganan", icon: <IconKey width={16} height={16} /> },
     { id: "users", label: "Pengguna", icon: <IconUsers width={16} height={16} />, count: users.length },
     { id: "schema", label: "Skema Database", icon: <IconDatabase width={16} height={16} /> },
@@ -686,6 +792,268 @@ export function SuperAdmin({
                 </div>
                 {filteredTenants.length === 0 && <p className="px-5 py-10 text-center text-sm text-fog">Tidak ada tenant yang cocok dengan filter.</p>}
               </div>
+            </div>
+          )}
+
+          {/* ===== TRANSAKSI DIGITAL (TERPUSAT) ===== */}
+          {tab === "digital" && (
+            <div className="view-enter space-y-4">
+              {/* KPI settlement */}
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {[
+                  { label: "Transaksi Terpusat", value: num(platformTxs.length), sub: `${settled.length} selesai · ${pending.length} pending`, cls: "text-ink" },
+                  { label: "Volume Nominal", value: idrShort(volumeToday), sub: "nilai produk hari ini", cls: "text-tide" },
+                  { label: "Pendapatan Platform", value: idr(Math.round(platformRevenueAnim)), sub: "profit share terkumpul", cls: "text-pine" },
+                  { label: "Menunggu Settlement", value: idrShort(pendingPayout), sub: `${pending.length} transaksi · porsi tenant`, cls: "text-[#8a5f10]" },
+                ].map((c, i) => (
+                  <Reveal key={c.label} delay={i * 60}>
+                    <div className="card card-hover px-4 py-3.5">
+                      <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-fog">{c.label}</p>
+                      <p className={cx("num mt-1 text-xl font-bold leading-tight", c.cls)}>{c.value}</p>
+                      <p className="mt-0.5 text-[11px] text-fog">{c.sub}</p>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
+                {/* katalog layanan & profit share */}
+                <Reveal delay={80}>
+                  <div className="card overflow-hidden">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-paper/50 px-5 py-4">
+                      <div>
+                        <h3 className="font-display text-[15px] font-bold">Katalog Layanan &amp; Profit Share</h3>
+                        <p className="text-[11px] text-fog">Kue margin = (harga jual − HPP) + biaya admin · dibagi platform vs tenant</p>
+                      </div>
+                      <Badge tone="honey">{services.filter((s) => s.enabled).length}/{services.length} aktif</Badge>
+                    </div>
+                    <ul className="divide-y divide-line">
+                      {services.map((s) => {
+                        const pie = svcPie(s);
+                        const pcut = svcPlatformCut(s);
+                        const tcut = svcTenantCut(s);
+                        const onCount = tenants.filter((t) => svcEnabledFor(s, t.id)).length;
+                        const hasMarkup = s.hargaMax > s.denom;
+                        return (
+                          <li key={s.id} className={cx("px-5 py-4 transition-colors", !s.enabled && "opacity-55")}>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <span className={cx("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", s.enabled ? "bg-pine-soft text-pine" : "bg-ink/6 text-fog")}>
+                                {svcIcon(s.id)}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[13.5px] font-bold leading-tight">{s.label}</p>
+                                <p className="num text-[10.5px] text-fog">vol 30 hr {num(s.volume30d)} trx · margin {idrShort(pie * s.volume30d)}</p>
+                              </div>
+                              <button onClick={() => setSvcTenantFor(s.id)} className="btn-outline px-2.5 py-1.5 text-[11px]" title="Atur per tenant">
+                                <IconBuilding width={12} height={12} /> {onCount}/{tenants.length} tenant
+                              </button>
+                              <span className="text-[10.5px] font-bold text-fog">Global</span>
+                              <Switch on={s.enabled} onChange={() => toggleSvcGlobal(s.id)} />
+                            </div>
+
+                            <div className="mt-3 grid gap-3 md:grid-cols-[repeat(4,minmax(0,1fr))_1.4fr]">
+                              <div>
+                                <label className="label !mb-1">HPP (Rp)</label>
+                                <input type="number" value={s.hpp} onChange={(e) => patchSvc(s.id, { hpp: Math.max(0, Number(e.target.value) || 0) }, true)}
+                                  onBlur={() => { log("UPDATE", "digital_services", `Mengubah HPP ${s.label} → ${idr(s.hpp)}`); }} className="input num py-1.5 text-[12.5px] font-bold" />
+                              </div>
+                              <div>
+                                <label className="label !mb-1">Harga Jual (Rp)</label>
+                                <input type="number" value={s.hargaJual} onChange={(e) => patchSvc(s.id, { hargaJual: Math.max(0, Number(e.target.value) || 0) }, true)}
+                                  onBlur={() => { log("UPDATE", "digital_services", `Mengubah harga jual ${s.label} → ${idr(s.hargaJual)}`); }} className="input num py-1.5 text-[12.5px] font-bold" />
+                              </div>
+                              <div>
+                                <label className="label !mb-1">Biaya Admin (Rp)</label>
+                                <input type="number" value={s.adminFee} onChange={(e) => patchSvc(s.id, { adminFee: Math.max(0, Number(e.target.value) || 0) }, true)}
+                                  onBlur={() => { log("UPDATE", "digital_services", `Mengubah biaya admin ${s.label} → ${idr(s.adminFee)}`); }} className="input num py-1.5 text-[12.5px] font-bold" />
+                              </div>
+                              <div>
+                                <label className="label !mb-1">Rentang Jual</label>
+                                <div className="num flex items-center gap-1 text-[10.5px] text-fog">
+                                  {hasMarkup ? (
+                                    <>
+                                      <input type="number" value={s.hargaMin} onChange={(e) => patchSvc(s.id, { hargaMin: Math.max(0, Number(e.target.value) || 0) }, true)} className="input num w-full py-1.5 text-[11px]" />
+                                      <span>–</span>
+                                      <input type="number" value={s.hargaMax} onChange={(e) => patchSvc(s.id, { hargaMax: Math.max(0, Number(e.target.value) || 0) }, true)} className="input num w-full py-1.5 text-[11px]" />
+                                    </>
+                                  ) : (
+                                    <span className="py-1.5">tetap (tagihan)</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <label className="label !mb-1">
+                                  Share Platform <span className="num text-pine">{s.platformShare}%</span>
+                                </label>
+                                <input type="range" min={10} max={60} step={5} value={s.platformShare}
+                                  onChange={(e) => patchSvc(s.id, { platformShare: Number(e.target.value) }, true)}
+                                  onMouseUp={() => log("UPDATE", "digital_services", `Profit share ${s.label} → platform ${s.platformShare}%`)}
+                                  onTouchEnd={() => log("UPDATE", "digital_services", `Profit share ${s.label} → platform ${s.platformShare}%`)}
+                                  className="w-full accent-[#d3921f]" />
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <div className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-ink/8">
+                                    <div className="h-full bg-honey transition-all" style={{ width: `${s.platformShare}%` }} />
+                                    <div className="h-full bg-pine transition-all" style={{ width: `${100 - s.platformShare}%` }} />
+                                  </div>
+                                </div>
+                                <p className="num mt-1 text-[10px] text-fog">
+                                  kue {idr(pie)} → platform <span className="font-bold text-[#8a5f10]">{idr(pcut)}</span> · tenant <span className="font-bold text-pine">{idr(tcut)}</span>
+                                </p>
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </Reveal>
+
+                {/* simulator + pengaturan settlement */}
+                <div className="space-y-4">
+                  <Reveal delay={140}>
+                    <div className="card p-5">
+                      <h3 className="font-display text-[15px] font-bold">Simulator Profit Share</h3>
+                      <p className="text-[11px] text-fog">Contoh nyata pembagian per transaksi</p>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="label !mb-1">Layanan</label>
+                          <select value={simSvc} onChange={(e) => { const id = e.target.value as ServiceId; setSimSvc(id); const sv = services.find((x) => x.id === id)!; setSimJual(sv.hargaJual); }} className="input py-1.5 text-[12.5px]">
+                            {services.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="label !mb-1">Nominal</label>
+                          <input value={idr(simService.denom)} readOnly className="input num py-1.5 text-[12.5px] font-bold bg-paper/60" />
+                        </div>
+                      </div>
+                      {simHasMarkup && (
+                        <div className="mt-3">
+                          <label className="label !mb-1">
+                            Harga jual tenant <span className="num text-pine">{idr(simJual)}</span>
+                          </label>
+                          <input type="range" min={simService.hargaMin} max={simService.hargaMax} step={100} value={simJual} onChange={(e) => setSimJual(Number(e.target.value))} className="w-full accent-[#17593e]" />
+                        </div>
+                      )}
+                      <div className="num mt-4 space-y-2 rounded-lg bg-paper/60 p-3.5 text-[12px]">
+                        <div className="flex justify-between"><span className="text-fog">Dibayar pelanggan</span><span className="font-bold">{idr(simJual + simService.adminFee)}</span></div>
+                        <div className="flex justify-between"><span className="text-fog">HPP platform (agregator)</span><span className="font-bold text-clay">−{idr(simService.hpp)}</span></div>
+                        <div className="flex justify-between"><span className="text-fog">Biaya admin</span><span className="font-bold">+{idr(simService.adminFee)}</span></div>
+                        <div className="flex justify-between border-t border-dashed border-linedark pt-2"><span className="font-bold">Kue margin</span><span className="font-bold">{idr(simPie)}</span></div>
+                        <div className="flex justify-between"><span className="text-fog">Platform ({simService.platformShare}%)</span><span className="font-bold text-[#8a5f10]">{idr(simPlatform)}</span></div>
+                        <div className="flex justify-between"><span className="text-fog">Tenant ({100 - simService.platformShare}%)</span><span className="font-bold text-pine">{idr(simTenant)}</span></div>
+                      </div>
+                      <div className="mt-3 flex h-2.5 overflow-hidden rounded-full">
+                        <div className="bar-fill bg-honey" style={{ width: `${(simPlatform / (simPie || 1)) * 100}%` }} />
+                        <div className="bar-fill bg-pine" style={{ width: `${(simTenant / (simPie || 1)) * 100}%`, animationDelay: "120ms" }} />
+                      </div>
+                      <p className="mt-1.5 text-[10px] text-fog">
+                        <span className="font-bold text-[#8a5f10]">■</span> platform &nbsp; <span className="font-bold text-pine">■</span> tenant — tenant menjual di harga pasar, platform mengambil share dari margin.
+                      </p>
+                    </div>
+                  </Reveal>
+
+                  <Reveal delay={200}>
+                    <div className="card p-5">
+                      <h3 className="font-display mb-3 text-[15px] font-bold">Pengaturan Settlement</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="label !mb-1">Jadwal Settlement ke Tenant</label>
+                          <div className="flex rounded-lg border border-line bg-surface p-0.5">
+                            {([["realtime", "Realtime"], ["h1", "H+1"], ["mingguan", "Mingguan"]] as const).map(([v, l]) => (
+                              <button key={v} onClick={() => { setSettlement((c) => ({ ...c, mode: v })); log("UPDATE", "settlement", `Mengubah jadwal settlement → ${l}`); }}
+                                className={cx("flex-1 rounded-md py-1.5 text-[12px] font-bold transition-all cursor-pointer", settlement.mode === v ? "bg-pine text-[#f2efe2] shadow-sm" : "text-fog hover:text-ink")}>
+                                {l}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="label !mb-1">Minimum Payout (Rp)</label>
+                          <input type="number" value={settlement.minPayout} onChange={(e) => setSettlement((c) => ({ ...c, minPayout: Math.max(0, Number(e.target.value) || 0) }), )}
+                            onBlur={() => log("UPDATE", "settlement", `Minimum payout → ${idr(settlement.minPayout)}`)} className="input num text-[13px] font-bold" />
+                        </div>
+                        <div className="flex items-center justify-between rounded-lg border border-line bg-surface px-4 py-3">
+                          <div>
+                            <p className="text-[13px] font-bold leading-tight">Auto-settlement</p>
+                            <p className="text-[11px] text-fog">Bayar otomatis saat melewati minimum payout.</p>
+                          </div>
+                          <Switch on={settlement.autoSettle} onChange={(v) => { setSettlement((c) => ({ ...c, autoSettle: v })); log("UPDATE", "settlement", `Auto-settlement ${v ? "diaktifkan" : "dimatikan"}`); }} />
+                        </div>
+                        <p className="rounded-lg bg-honey-soft/60 px-3.5 py-2.5 text-[11px] leading-relaxed text-[#8a5f10]">
+                          Skema <b>H+1</b> aktif · {pending.length} transaksi menunggu · total {idr(pendingPayout)} akan diteruskan ke saldo tenant pada settlement berikutnya.
+                        </p>
+                      </div>
+                    </div>
+                  </Reveal>
+                </div>
+              </div>
+
+              {/* log settlement terpusat */}
+              <Reveal delay={120}>
+                <div className="card overflow-hidden">
+                  <div className="flex flex-wrap items-center gap-2 border-b border-line px-5 py-4">
+                    <IconSwap width={17} height={17} className="text-pine" />
+                    <h3 className="font-display text-[15px] font-bold">Log Transaksi Terpusat</h3>
+                    <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                      <select value={settleTenant} onChange={(e) => setSettleTenant(e.target.value)} className="input w-auto py-1.5 text-[12px]">
+                        <option value="semua">Semua Tenant</option>
+                        {tenants.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      </select>
+                      {(["semua", "berhasil", "pending"] as const).map((f) => (
+                        <button key={f} onClick={() => setSettleFilter(f)}
+                          className={cx("rounded-full border px-3 py-1.5 text-[11.5px] font-bold transition-all cursor-pointer capitalize", settleFilter === f ? "border-pine bg-pine text-[#f2efe2]" : "border-line bg-surface text-fog hover:text-ink")}>
+                          {f}
+                        </button>
+                      ))}
+                      <button onClick={processSettlement} disabled={!pending.length} className="btn-primary ml-1 px-3.5 py-2 text-[12px]">
+                        <IconCheck width={14} height={14} /> Proses Settlement ({pending.length})
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[900px]">
+                      <thead>
+                        <tr className="bg-paper/60">
+                          <th className="th">Waktu / ID</th>
+                          <th className="th">Tenant</th>
+                          <th className="th">Layanan</th>
+                          <th className="th text-right">Nominal</th>
+                          <th className="th text-right">Harga Jual</th>
+                          <th className="th text-right">Kue Margin</th>
+                          <th className="th text-right">Platform</th>
+                          <th className="th text-right">Tenant</th>
+                          <th className="th">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredSettle.map((t) => {
+                          const sv = services.find((s) => s.id === t.serviceId);
+                          const tn = tenants.find((x) => x.id === t.tenantId);
+                          return (
+                            <tr key={t.id} className="row-in transition-colors hover:bg-paper/60">
+                              <td className="td"><p className="num text-[13px] font-bold">{t.time}</p><p className="num text-[10.5px] text-fog">{t.id}</p></td>
+                              <td className="td"><p className="text-[12.5px] font-semibold">{tn?.name ?? t.tenantId}</p><p className="num text-[10.5px] text-fog">{t.tenantId}</p></td>
+                              <td className="td">
+                                <div className="flex items-center gap-2">
+                                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-pine-soft text-pine">{svcIcon(t.serviceId)}</span>
+                                  <div><p className="text-[12.5px] font-semibold leading-tight">{sv?.label ?? t.serviceId}</p><p className="num text-[10px] text-fog">{t.target}</p></div>
+                                </div>
+                              </td>
+                              <td className="td num text-right">{idr(t.nominal)}</td>
+                              <td className="td num text-right">{idr(t.hargaJual)}</td>
+                              <td className="td num text-right font-semibold">{idr(t.hargaJual - t.hpp + t.adminFee)}</td>
+                              <td className="td num text-right font-bold text-[#8a5f10]">{idr(t.platformCut)}</td>
+                              <td className="td num text-right font-bold text-pine">{idr(t.tenantCut)}</td>
+                              <td className="td"><Badge tone={t.status === "berhasil" ? "pine" : "honey"}>{t.status === "berhasil" ? "Settled" : "Pending"}</Badge></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  {filteredSettle.length === 0 && <p className="px-5 py-10 text-center text-sm text-fog">Tidak ada transaksi pada filter ini.</p>}
+                </div>
+              </Reveal>
             </div>
           )}
 
@@ -1096,6 +1464,44 @@ export function SuperAdmin({
             </button>
           </div>
         </div>
+      </Modal>
+
+      {/* ===== modal layanan per tenant ===== */}
+      <Modal open={!!svcTenantFor} onClose={() => setSvcTenantFor(null)}>
+        {svcTenantFor && (() => {
+          const sv = services.find((s) => s.id === svcTenantFor)!;
+          return (
+            <>
+              <ModalHead title={`Ketersediaan · ${sv.label}`} onClose={() => setSvcTenantFor(null)} />
+              <div className="p-5">
+                <p className="mb-3 rounded-lg bg-paper px-3.5 py-2.5 text-[12px] text-fog">
+                  Layanan global saat ini <b className={sv.enabled ? "text-pine" : "text-clay"}>{sv.enabled ? "AKTIF" : "NONAKTIF"}</b>.
+                  Sakelar di bawah adalah override per tenant — tenant yang dimatikan tidak melihat layanan ini di kasirnya.
+                </p>
+                <ul className="max-h-72 divide-y divide-line overflow-y-auto rounded-lg border border-line">
+                  {tenants.map((t) => {
+                    const on = svcEnabledFor(sv, t.id);
+                    return (
+                      <li key={t.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                        <div className="min-w-0">
+                          <p className="flex items-center gap-1.5 text-[13px] font-bold leading-tight">
+                            {t.name} {t.current && <Badge tone="honey">Anda</Badge>}
+                          </p>
+                          <p className="num text-[10.5px] text-fog">{t.id} · {planName(t.planId)} · {t.region}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={cx("text-[11px] font-bold", on ? "text-pine" : "text-fog")}>{on ? "Aktif" : "Mati"}</span>
+                          <Switch on={on} onChange={() => toggleSvcTenant(sv.id, t.id)} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <button className="btn-primary mt-4 w-full py-2.5" onClick={() => setSvcTenantFor(null)}>Selesai</button>
+              </div>
+            </>
+          );
+        })()}
       </Modal>
     </div>
   );

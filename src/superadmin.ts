@@ -167,6 +167,90 @@ export const MRR_TREND = [
   { label: "Feb", value: 1_745_000 },
 ];
 
+/* ========== transaksi digital terpusat (profit share) ========== */
+
+export type ServiceId = "pulsa" | "data" | "ewallet" | "token" | "tagihan" | "bpjs" | "pdam" | "transfer" | "tarik";
+
+/** pemetaan layanan platform → kategori di modul Layanan Digital tenant */
+export const SERVICE_TO_CAT: Record<ServiceId, string> = {
+  pulsa: "pulsa", data: "data", ewallet: "ewallet", token: "listrik", tagihan: "listrik",
+  bpjs: "bpjs", pdam: "pdam", transfer: "transfer", tarik: "transfer",
+};
+
+export type DigitalService = {
+  id: ServiceId;
+  label: string;
+  /** nominal referensi (pulsa 5000, token 100000, dst) */
+  denom: number;
+  /** harga jual pasar tenant (all-in yang dibayar pelanggan utk produk) */
+  hargaJual: number;
+  /** HPP platform dari agregator (termasuk pokok utk tagihan/transfer) */
+  hpp: number;
+  /** biaya admin platform yg dibebankan ke pelanggan */
+  adminFee: number;
+  /** % kue margin utk platform; sisanya utk tenant */
+  platformShare: number;
+  /** rentang harga jual yg diizinkan utk tenant (produk dgn markup) */
+  hargaMin: number;
+  hargaMax: number;
+  /** aktif utk semua tenant (bisa di-override per tenant) */
+  enabled: boolean;
+  /** id tenant yang menonaktifkan layanan ini */
+  tenantOff: string[];
+  volume30d: number;
+};
+
+/** kue margin per transaksi = (hargaJual − HPP) + biaya admin */
+export const svcPie = (s: DigitalService) => (s.hargaJual - s.hpp) + s.adminFee;
+export const svcPlatformCut = (s: DigitalService) => Math.round((svcPie(s) * s.platformShare) / 100);
+export const svcTenantCut = (s: DigitalService) => svcPie(s) - svcPlatformCut(s);
+
+export const DIGITAL_SERVICES: DigitalService[] = [
+  { id: "pulsa", label: "Pulsa", denom: 5000, hargaJual: 5500, hpp: 4850, adminFee: 2000, platformShare: 30, hargaMin: 5000, hargaMax: 7000, enabled: true, tenantOff: [], volume30d: 1240 },
+  { id: "data", label: "Paket Data", denom: 65000, hargaJual: 67500, hpp: 61900, adminFee: 2500, platformShare: 30, hargaMin: 65000, hargaMax: 75000, enabled: true, tenantOff: [], volume30d: 486 },
+  { id: "ewallet", label: "E-Wallet", denom: 50000, hargaJual: 51000, hpp: 49750, adminFee: 1500, platformShare: 30, hargaMin: 50000, hargaMax: 54000, enabled: true, tenantOff: ["T-006"], volume30d: 730 },
+  { id: "token", label: "Token PLN", denom: 100000, hargaJual: 102500, hpp: 99100, adminFee: 2500, platformShare: 35, hargaMin: 100000, hargaMax: 106000, enabled: true, tenantOff: [], volume30d: 388 },
+  { id: "tagihan", label: "Tagihan PLN", denom: 200000, hargaJual: 200000, hpp: 201200, adminFee: 3000, platformShare: 30, hargaMin: 200000, hargaMax: 200000, enabled: true, tenantOff: [], volume30d: 214 },
+  { id: "bpjs", label: "BPJS Kesehatan", denom: 105000, hargaJual: 105000, hpp: 106000, adminFee: 2500, platformShare: 25, hargaMin: 105000, hargaMax: 105000, enabled: true, tenantOff: [], volume30d: 162 },
+  { id: "pdam", label: "Air / PDAM", denom: 67500, hargaJual: 67500, hpp: 68800, adminFee: 2500, platformShare: 25, hargaMin: 67500, hargaMax: 67500, enabled: false, tenantOff: ["T-008"], volume30d: 143 },
+  { id: "transfer", label: "Transfer Bank", denom: 500000, hargaJual: 500000, hpp: 502500, adminFee: 6500, platformShare: 40, hargaMin: 500000, hargaMax: 500000, enabled: true, tenantOff: [], volume30d: 96 },
+  { id: "tarik", label: "Tarik Tunai", denom: 300000, hargaJual: 300000, hpp: 300000, adminFee: 5000, platformShare: 40, hargaMin: 300000, hargaMax: 300000, enabled: true, tenantOff: ["T-007"], volume30d: 84 },
+];
+
+export type PlatformTx = {
+  id: string;
+  time: string;
+  tenantId: string;
+  serviceId: ServiceId;
+  target: string;
+  nominal: number;
+  hargaJual: number;
+  hpp: number;
+  adminFee: number;
+  platformCut: number;
+  tenantCut: number;
+  status: "berhasil" | "pending";
+};
+
+export const PLATFORM_TXS: PlatformTx[] = [
+  { id: "PTX-90121", time: "09:47", tenantId: "T-001", serviceId: "pulsa", target: "0812-9934-1120", nominal: 5000, hargaJual: 5500, hpp: 4850, adminFee: 2000, platformCut: 795, tenantCut: 1855, status: "berhasil" },
+  { id: "PTX-90120", time: "09:44", tenantId: "T-004", serviceId: "ewallet", target: "0857-2210-4471", nominal: 50000, hargaJual: 51000, hpp: 49750, adminFee: 1500, platformCut: 825, tenantCut: 1925, status: "berhasil" },
+  { id: "PTX-90119", time: "09:41", tenantId: "T-006", serviceId: "token", target: "5371-0921-4482", nominal: 100000, hargaJual: 102500, hpp: 99100, adminFee: 2500, platformCut: 2065, tenantCut: 3835, status: "berhasil" },
+  { id: "PTX-90118", time: "09:38", tenantId: "T-001", serviceId: "data", target: "0819-0023-7745", nominal: 65000, hargaJual: 67500, hpp: 61900, adminFee: 2500, platformCut: 2430, tenantCut: 5670, status: "berhasil" },
+  { id: "PTX-90117", time: "09:35", tenantId: "T-002", serviceId: "transfer", target: "0038-01-882341", nominal: 500000, hargaJual: 500000, hpp: 502500, adminFee: 6500, platformCut: 1600, tenantCut: 2400, status: "berhasil" },
+  { id: "PTX-90116", time: "09:31", tenantId: "T-008", serviceId: "pdam", target: "1044-8821-33", nominal: 67500, hargaJual: 67500, hpp: 68800, adminFee: 2500, platformCut: 300, tenantCut: 900, status: "berhasil" },
+  { id: "PTX-90115", time: "09:28", tenantId: "T-003", serviceId: "pulsa", target: "0856-1190-2231", nominal: 5000, hargaJual: 5500, hpp: 4850, adminFee: 2000, platformCut: 795, tenantCut: 1855, status: "berhasil" },
+  { id: "PTX-90114", time: "09:24", tenantId: "T-005", serviceId: "bpjs", target: "0001-3388-2210", nominal: 105000, hargaJual: 105000, hpp: 106000, adminFee: 2500, platformCut: 375, tenantCut: 1125, status: "berhasil" },
+  { id: "PTX-90113", time: "09:20", tenantId: "T-001", serviceId: "tarik", target: "Kas Agen", nominal: 300000, hargaJual: 300000, hpp: 300000, adminFee: 5000, platformCut: 2000, tenantCut: 3000, status: "berhasil" },
+  { id: "PTX-90112", time: "09:16", tenantId: "T-004", serviceId: "tagihan", target: "5371-4402-9917", nominal: 200000, hargaJual: 200000, hpp: 201200, adminFee: 3000, platformCut: 540, tenantCut: 1260, status: "berhasil" },
+  { id: "PTX-90111", time: "09:11", tenantId: "T-007", serviceId: "ewallet", target: "0813-5567-0912", nominal: 50000, hargaJual: 51000, hpp: 49750, adminFee: 1500, platformCut: 825, tenantCut: 1925, status: "berhasil" },
+  { id: "PTX-90110", time: "09:05", tenantId: "T-006", serviceId: "pulsa", target: "0821-7745-0912", nominal: 5000, hargaJual: 5500, hpp: 4850, adminFee: 2000, platformCut: 795, tenantCut: 1855, status: "pending" },
+  { id: "PTX-90109", time: "09:02", tenantId: "T-002", serviceId: "token", target: "1420-8837-2265", nominal: 100000, hargaJual: 102500, hpp: 99100, adminFee: 2500, platformCut: 2065, tenantCut: 3835, status: "pending" },
+  { id: "PTX-90108", time: "08:58", tenantId: "T-008", serviceId: "data", target: "0895-2211-8876", nominal: 65000, hargaJual: 67500, hpp: 61900, adminFee: 2500, platformCut: 2430, tenantCut: 5670, status: "pending" },
+];
+
+export type SettlementCfg = { mode: "realtime" | "h1" | "mingguan"; minPayout: number; autoSettle: boolean };
+
 export const SYSTEM_SERVICES = [
   { id: "api", name: "API Gateway", region: "ap-southeast-1", latency: 38, uptime: "99,98%", ok: true },
   { id: "db", name: "PostgreSQL Utama (RLS)", region: "ap-southeast-1", latency: 12, uptime: "99,99%", ok: true },

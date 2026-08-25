@@ -139,11 +139,24 @@ export function Digital({
   txs,
   setTxs,
   push,
+  hiddenCats = [],
+  feeOverrides = {},
+  komisiOverrides = {},
 }: {
   txs: DigitalTx[];
   setTxs: React.Dispatch<React.SetStateAction<DigitalTx[]>>;
   push: Push;
+  /** kategori yang dimatikan platform untuk tenant ini */
+  hiddenCats?: string[];
+  /** biaya admin mengikuti kontrak platform */
+  feeOverrides?: Record<string, number>;
+  /** komisi agen mengikuti profit share platform */
+  komisiOverrides?: Record<string, number>;
 }) {
+  const feeFor = (k: string) => feeOverrides[k] ?? FEE[k] ?? 0;
+  const komisiFor = (k: string) => komisiOverrides[k] ?? KOMISI[k] ?? 0;
+
+  const visibleCats = CATS.filter((c) => !hiddenCats.includes(c.id));
   const [cat, setCat] = useState<DigitalCat>("pulsa");
   const [subMode, setSubMode] = useState<"token" | "tagihan">("token");
   const [trMode, setTrMode] = useState<"transfer" | "tarik">("transfer");
@@ -167,6 +180,14 @@ export function Digital({
 
   useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
 
+  // jika platform mematikan kategori yang sedang aktif, pindah ke yang tersedia
+  useEffect(() => {
+    if (hiddenCats.includes(cat) && visibleCats.length) {
+      setCat(visibleCats[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hiddenCats]);
+
   // reset saat ganti layanan
   useEffect(() => {
     setStage("form");
@@ -186,23 +207,23 @@ export function Digital({
   const buildSummary = (): Summary => {
     switch (cat) {
       case "pulsa":
-        return { sub: `Pulsa ${operatorL}`, provider: operatorL, target: phone || "—", nominal: nominal ?? 0, fee: FEE.pulsa, komisi: KOMISI.pulsa, refPrefix: "PUL", catKey: "pulsa" };
+        return { sub: `Pulsa ${operatorL}`, provider: operatorL, target: phone || "—", nominal: nominal ?? 0, fee: feeFor("pulsa"), komisi: komisiFor("pulsa"), refPrefix: "PUL", catKey: "pulsa" };
       case "data":
-        return { sub: pkg ? `Paket ${pkg.quota} ${operatorL}` : `Paket Data ${operatorL}`, provider: operatorL, target: phone || "—", nominal: pkg?.price ?? 0, fee: FEE.data, komisi: KOMISI.data, refPrefix: "DTA", catKey: "data" };
+        return { sub: pkg ? `Paket ${pkg.quota} ${operatorL}` : `Paket Data ${operatorL}`, provider: operatorL, target: phone || "—", nominal: pkg?.price ?? 0, fee: feeFor("data"), komisi: komisiFor("data"), refPrefix: "DTA", catKey: "data" };
       case "ewallet":
-        return { sub: `Top Up ${walletL}`, provider: walletL, target: phone || "—", nominal: nominal ?? 0, fee: FEE.ewallet, komisi: KOMISI.ewallet, refPrefix: "EWT", catKey: "ewallet" };
+        return { sub: `Top Up ${walletL}`, provider: walletL, target: phone || "—", nominal: nominal ?? 0, fee: feeFor("ewallet"), komisi: komisiFor("ewallet"), refPrefix: "EWT", catKey: "ewallet" };
       case "listrik":
         return subMode === "token"
-          ? { sub: "Token PLN", provider: "PLN", target: custId ? formatId(custId) : "—", nominal: nominal ?? 0, fee: FEE.token, komisi: KOMISI.token, refPrefix: "PLN", catKey: "token" }
-          : { sub: "Tagihan PLN", provider: "PLN", target: custId ? formatId(custId) : "—", nominal: bill?.amount ?? 0, fee: FEE.tagihan, komisi: KOMISI.tagihan, refPrefix: "PLN", catKey: "tagihan" };
+          ? { sub: "Token PLN", provider: "PLN", target: custId ? formatId(custId) : "—", nominal: nominal ?? 0, fee: feeFor("token"), komisi: komisiFor("token"), refPrefix: "PLN", catKey: "token" }
+          : { sub: "Tagihan PLN", provider: "PLN", target: custId ? formatId(custId) : "—", nominal: bill?.amount ?? 0, fee: feeFor("tagihan"), komisi: komisiFor("tagihan"), refPrefix: "PLN", catKey: "tagihan" };
       case "bpjs":
-        return { sub: "BPJS Kesehatan", provider: "BPJS", target: custId ? formatId(custId) : "—", nominal: bill?.amount ?? 0, fee: FEE.bpjs, komisi: KOMISI.bpjs, refPrefix: "BJS", catKey: "bpjs" };
+        return { sub: "BPJS Kesehatan", provider: "BPJS", target: custId ? formatId(custId) : "—", nominal: bill?.amount ?? 0, fee: feeFor("bpjs"), komisi: komisiFor("bpjs"), refPrefix: "BJS", catKey: "bpjs" };
       case "pdam":
-        return { sub: "Tagihan PDAM", provider: "PDAM", target: custId ? formatId(custId) : "—", nominal: bill?.amount ?? 0, fee: FEE.pdam, komisi: KOMISI.pdam, refPrefix: "PDN", catKey: "pdam" };
+        return { sub: "Tagihan PDAM", provider: "PDAM", target: custId ? formatId(custId) : "—", nominal: bill?.amount ?? 0, fee: feeFor("pdam"), komisi: komisiFor("pdam"), refPrefix: "PDN", catKey: "pdam" };
       case "transfer":
         return trMode === "transfer"
-          ? { sub: `Transfer ${bankL}`, provider: bankL, target: acct ? formatId(acct) : "—", nominal: amount ?? 0, fee: FEE.transfer, komisi: KOMISI.transfer, refPrefix: "TRF", catKey: "transfer" }
-          : { sub: "Tarik Tunai", provider: "Kas Agen", target: "Kas Agen", nominal: amount ?? 0, fee: FEE.tarik, komisi: KOMISI.tarik, refPrefix: "TRK", catKey: "tarik" };
+          ? { sub: `Transfer ${bankL}`, provider: bankL, target: acct ? formatId(acct) : "—", nominal: amount ?? 0, fee: feeFor("transfer"), komisi: komisiFor("transfer"), refPrefix: "TRF", catKey: "transfer" }
+          : { sub: "Tarik Tunai", provider: "Kas Agen", target: "Kas Agen", nominal: amount ?? 0, fee: feeFor("tarik"), komisi: komisiFor("tarik"), refPrefix: "TRK", catKey: "tarik" };
     }
   };
 
@@ -403,7 +424,7 @@ export function Digital({
         {cat === "pulsa" && (
           <div>
             <p className="label">Nominal Pulsa</p>
-            <NominalChips values={PULSA_NOMINALS} fee={FEE.pulsa} value={nominal} onSelect={setNominal} />
+            <NominalChips values={PULSA_NOMINALS} fee={feeFor("pulsa")} value={nominal} onSelect={setNominal} />
           </div>
         )}
 
@@ -434,14 +455,14 @@ export function Digital({
         {cat === "ewallet" && (
           <div>
             <p className="label">Nominal Top Up</p>
-            <NominalChips values={EWALLET_NOMINALS} fee={FEE.ewallet} value={nominal} onSelect={setNominal} />
+            <NominalChips values={EWALLET_NOMINALS} fee={feeFor("ewallet")} value={nominal} onSelect={setNominal} />
           </div>
         )}
 
         {cat === "listrik" && subMode === "token" && (
           <div>
             <p className="label">Nominal Token</p>
-            <NominalChips values={TOKEN_NOMINALS} fee={FEE.token} value={nominal} onSelect={setNominal} />
+            <NominalChips values={TOKEN_NOMINALS} fee={feeFor("token")} value={nominal} onSelect={setNominal} />
           </div>
         )}
 
@@ -475,7 +496,7 @@ export function Digital({
         {cat === "transfer" && trMode === "tarik" && (
           <div>
             <p className="label">Nominal Tarik Tunai</p>
-            <NominalChips values={TARIK_NOMINALS} fee={FEE.tarik} value={amount} onSelect={setAmount} />
+            <NominalChips values={TARIK_NOMINALS} fee={feeFor("tarik")} value={amount} onSelect={setAmount} />
             <p className="mt-2.5 rounded-lg bg-honey-soft/60 px-3.5 py-2.5 text-[12px] font-medium text-[#8a5f10]">
               Pelanggan menerima uang tunai dari kas agen sebesar nominal yang dipilih, lalu membayar nominal + biaya admin.
             </p>
@@ -559,7 +580,7 @@ export function Digital({
       <div className="mt-5 grid gap-5 lg:grid-cols-[290px_1fr]">
         {/* rail kategori */}
         <Reveal className="space-y-2">
-          {CATS.map((c) => (
+          {visibleCats.map((c) => (
             <button
               key={c.id}
               onClick={() => setCat(c.id)}
@@ -585,6 +606,14 @@ export function Digital({
               </span>
             </button>
           ))}
+          {hiddenCats.length > 0 && (
+            <div className="rounded-xl border border-dashed border-linedark bg-white/70 px-3.5 py-3">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#8a5f10]">Dikelola Platform</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-fog">
+                {hiddenCats.length} layanan dinonaktifkan oleh super admin untuk tenant ini, sehingga tidak tampil di kasir.
+              </p>
+            </div>
+          )}
         </Reveal>
 
         {/* panel transaksi */}
